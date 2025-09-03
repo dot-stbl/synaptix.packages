@@ -8,9 +8,9 @@ public class StringExtensionsToTrainCase
     [InlineData(null)]
     public void ReturnArgumentNullException(string source)
     {
-            Action act = () => source.ToTrainCase();
-            act.Should().Throw<ArgumentNullException>();
-        }
+        Action act = () => source.ToTrainCase();
+        act.Should().Throw<ArgumentNullException>();
+    }
 
     [Theory]
     [InlineData("api/users/32/someActionToDo?param=%a%")]
@@ -22,7 +22,7 @@ public class StringExtensionsToTrainCase
     [InlineData("api/users/32/some.action.to.do?param=%a%")]
     public void ReturnTrainCaseUrl(string source)
     {
-            var expectedResult = "Api/Users/32/Some-Action-To-Do?Param=%A%";
-            source.ToTrainCase().Should().Be(expectedResult);
-        }
+        var expectedResult = "Api/Users/32/Some-Action-To-Do?Param=%A%";
+        source.ToTrainCase().Should().Be(expectedResult);
+    }
 }

@@ -10,14 +10,14 @@ public record Hex : IColor<string>
     /// <inheritdoc />
     public string Value { get; private set; } = string.Empty;
 
-    
+
     /// <summary>
     /// Create <see cref="Hex"/> color type
     /// </summary>
     /// <param name="value">string color value with # or without</param>
     public static Hex TryCreate(string value)
     {
-        if (value.IndexOf('#') == 1 && value.Substring(1) is {} hexed)
+        if (value.IndexOf('#') == 1 && value.Substring(1) is { } hexed)
         {
             return new Hex
             {

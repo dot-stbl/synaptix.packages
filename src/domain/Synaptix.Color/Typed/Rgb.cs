@@ -10,7 +10,7 @@ public class Rgb : IColor<RgbByteStorage>
 {
     /// <inheritdoc />
     public RgbByteStorage Value { get; private set; } = RgbByteStorage.Default;
-    
+
     /// <summary>
     /// Create <see cref="Rgb"/> by params byte
     /// </summary>

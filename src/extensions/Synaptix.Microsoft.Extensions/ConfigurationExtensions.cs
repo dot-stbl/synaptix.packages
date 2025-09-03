@@ -27,7 +27,7 @@ public static class ConfigurationExtensions
             ? section.Get<TExternalOptions>()
             : null;
     }
-    
+
     /// <summary>
     /// Gets the required external options of the specified type from configuration.
     /// This method ensures that a SectionOverrideAttribute exists and the corresponding configuration section is available,
@@ -54,7 +54,7 @@ public static class ConfigurationExtensions
         return section.Get<TExternalOptions>() ??
                throw new InvalidOperationException($"Wrong get model by section '{section}'");
     }
-    
+
     /// <summary>
     /// Gets the override configuration section for the specified external options type.
     /// This internal method retrieves the configuration section path specified in the SectionOverrideAttribute

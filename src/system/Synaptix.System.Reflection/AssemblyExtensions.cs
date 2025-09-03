@@ -36,7 +36,7 @@ public static class AssemblyExtensions
         {
             return [];
         }
-        
+
         return assembly.GetReferencedAssemblies()
             .Select(Assembly.Load)
             .ToArray();

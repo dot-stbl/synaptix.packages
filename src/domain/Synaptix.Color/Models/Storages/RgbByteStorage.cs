@@ -12,12 +12,12 @@ public record RgbByteStorage : IByteStorage
     /// <c>Red</c> color byte
     /// </summary>
     public byte R { get; set; }
-    
+
     /// <summary>
     /// <c>Green</c> color byte
     /// </summary>
     public byte G { get; set; }
-    
+
     /// <summary>
     /// <c>Blue</c> color byte
     /// </summary>

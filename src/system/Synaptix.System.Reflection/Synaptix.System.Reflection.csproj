@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>latest</LangVersion>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Version>1.0.0</Version>
+        <FileVersion>1.0.0</FileVersion>
+        <AssemblyVersion>1.0.0</AssemblyVersion>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <PackageIcon>stbl.synaptix.gzx.png</PackageIcon>
+        <PackageTags>$(PackageTags), system, reflection, finder, helper, extensions, assembly</PackageTags>
+        <Description>
+            A comprehensive set of reflection-based extension methods and utilities that enhance .NET reflection capabilities.
+            Provides powerful searching, filtering, and manipulation features for types, members, and attributes at runtime.
+            This library simplifies complex reflection operations with intuitive APIs for discovering and working with
+            assemblies, types, methods, properties, fields, and custom attributes in a type-safe manner.
+        </Description>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <None Include="..\..\..\contents\stbl.synaptix.gzx.png">
+        <Pack>True</Pack>
+        <PackagePath/>
+        <Link>stbl.synaptix.gzx.png</Link>
+      </None>
+    </ItemGroup>
+    
+</Project>

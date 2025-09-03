@@ -1,0 +1,27 @@
+<Project>
+    
+    <PropertyGroup>
+        <Authors>stbl.group, Alexander Sergeev</Authors>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/dot-stbl/synaptix.packages.git</RepositoryUrl>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageProjectUrl>stbl.com</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Copyright>Copyright © 2025 stbl inc, MIT license</Copyright>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <PackageTags>stbl.com, synaptix, extensions, sdk</PackageTags>
+    </PropertyGroup>
+    
+</Project>

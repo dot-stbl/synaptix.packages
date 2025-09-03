@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <LangVersion>latest</LangVersion>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>$(NoWarn)</NoWarn>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <Version>1.0.0</Version>
+        <FileVersion>1.0.0</FileVersion>
+        <AssemblyVersion>1.0.0</AssemblyVersion>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <PackageIcon>stbl.synaptix.ue.png</PackageIcon>
+        <PackageTags>text, string, case, extensions, dot, camel, kebab, train</PackageTags>
+        <Description>Change any string case to PascalCase/camelCase/kebab-case/snake_case/Train-Case/dot.case</Description>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <None Include="..\..\..\contents\stbl.synaptix.ue.png">
+          <Pack>True</Pack>
+          <PackagePath/>
+          <Link>stbl.synaptix.ue.png</Link>
+        </None>
+        <None Include="README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+    
+</Project>

@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <LangVersion>latest</LangVersion>
+        <TargetFrameworks>net8.0;net6.0;net7.0;net5.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <Version>1.2.0</Version>
+        <FileVersion>1.2.0</FileVersion>
+        <AssemblyVersion>1.2.0</AssemblyVersion>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <PackageIcon>stbl.synaptix.clr.png</PackageIcon>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageTags>color, converters, extensions, hex, rgb</PackageTags>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <None Include="..\..\..\contents\stbl.synaptix.clr.png">
+        <Pack>True</Pack>
+        <PackagePath/>
+        <Link>stbl.synaptix.clr.png</Link>
+      </None>
+    </ItemGroup>
+    
+</Project>

@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <TargetFramework>netstandard2.1</TargetFramework>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Version>2.2.0</Version>
+        <FileVersion>$(Version)</FileVersion>
+        <AssemblyVersion>$(Version)</AssemblyVersion>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <RepositoryType>git</RepositoryType>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageTags>masstransit, mt, proto, buf, kafka, provider, extensions, serialization, deserialization</PackageTags>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageIcon>stbl.synaptix.wzs.png</PackageIcon>
+        <Description>Add-on for masstransit kafka with the addition of protobuf serialization and deserialization</Description>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <None Include="..\..\..\contents\stbl.synaptix.wzs.png">
+        <Pack>True</Pack>
+        <PackagePath/>
+        <Link>stbl.synaptix.wzs.png</Link>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="README.md">
+            <Link>README.md</Link>
+            <Pack>True</Pack>
+            <PackagePath/>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="protobuf-net" Version="3.*" />
+      <PackageReference Include="MassTransit.Kafka" Version="8.*" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+    
+</Project>

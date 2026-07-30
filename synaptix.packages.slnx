@@ -10,5 +10,6 @@
     <Project Path="src/text/Synaptix.Text.Case.Unit/Synaptix.Text.Case.Unit.csproj" />
     <Project Path="src/analyzers/Synaptix.Analyzers/Synaptix.Analyzers.csproj" />
     <Project Path="src/analyzers/Synaptix.Analyzers.Tests/Synaptix.Analyzers.Tests.csproj" />
+    <Project Path="src/analyzers/Synaptix.Analyzers.Samples/Synaptix.Analyzers.Samples.csproj" />
 
 </Solution>

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS1591;CS1573;CA1014;CA1305;CA1822;CA1852;CA1711;CA2264;IDE0022;IDE0028;IDE0040;IDE0046;IDE0290;VSTHRD200;VSTHRD110;RCS1124;RCS1173;RCS1206;RCS1208;RCS1218;RCS1238</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Analyzer Include="..\Synaptix.Analyzers\bin\Debug\netstandard2.0\Synaptix.Analyzers.dll" />
+  </ItemGroup>
+
+</Project>

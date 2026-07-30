@@ -28,6 +28,7 @@ First release of the Roslyn analyzer package. MIT licensed (community-friendly).
 - **STBL0008**: Concrete class is not sealed. CodeFix adds the `sealed` modifier. (Architectural — kept as Warning, no fix isn't possible.)
 - **STBL0009**: Collection initializer can be a collection expression (C# 12+). CodeFix converts `new T[] { ... }`, `new List<T> { ... }`, etc. to `[...]` syntax.
 - **STBL0010**: `#region` directive is banned. Warning only — no CodeFix (region removal requires manual context).
+- **STBL0003 CodeFix** (round 3): extract `private static` method into a `file static class {ClassName}Helpers { public static {Method}(...) }` in the same file. Unqualified call sites within the file are rewritten to the qualified helper name. Skips instance methods, overloads, `[MethodImpl]`-attributed methods, and helper-name collisions. Single-document rewrite via `DocumentEditor` — no cross-file complications. 7 new tests (90 → 97 analyzer tests).
 - **STBL0002 CodeFix**: rename banned parameter abbreviation to its expanded form (`ct` → `cancellationToken`, `req` → `request`, etc.).
 - **STBL0004 CodeFix**: replace `ArgumentNullException.ThrowIfNull(x)` with `if (x is null) throw new ArgumentNullException(nameof(x));`.
 - **STBL0001 fix**: longest-match suffix detection — `AddressViewModel` now reports `ViewModel` rather than `Model`.
@@ -36,7 +37,7 @@ First release of the Roslyn analyzer package. MIT licensed (community-friendly).
 ### Notes
 - `release.yml` rewritten to parse `v-<package>-<version>` tags, build/test only the matching project, pack exactly one `.nupkg`, and push to NuGet.org via Trusted Publishing (OIDC, no API key required). Two tags needed for two packages.
 - All 138 tests green (48 text-case + 90 analyzer). `dotnet build` 0 warnings, 0 errors.
-- Severity philosophy: style rules with auto-fix surface as Warning + CodeFix (apply silently via Ctrl+. in IDE). Architectural rules (STBL0003, STBL0010) are Warning only — the right answer needs human judgment.
+- Severity philosophy: style rules with auto-fix surface as Warning + CodeFix (apply silently via Ctrl+. in IDE). Only STBL0010 (`#region`) is Warning only — the right answer needs human judgment. (STBL0003 now has a CodeFix as of round 3.)
 
 ## [1.1.0] — 2026-XX-XX
 

@@ -34,7 +34,7 @@ dotnet_diagnostic.SYNAPTIX0010.severity = warning
 |----|-------|------------------|---------|-----------|
 | `STBL0001` | Banned type-name suffix (`Dto`/`Model`/`Impl`/`Util`/`Utility`/`ViewModel`) | Warning | Yes (rename, longest match) | Per `naming-and-types.md` — suffixes must describe role, not generic pattern. |
 | `STBL0002` | Banned parameter abbreviation (`ct`/`req`/`resp`/`err`/`msg`/`ex`/`svc`/`u`/`x`/`tmp`) | Warning | Yes (expand) | Per `naming-and-types.md` — full names only. |
-| `STBL0003` | Private method in production class | Warning | — (architectural) | Per `class-layout-and-tooling.md §1a` — extract to `file static` helper. |
+| `STBL0003` | Private method in production class | Warning | Yes (extract to file static helper) | Per `class-layout-and-tooling.md §1a` — extract to `file static` helper. |
 | `STBL0004` | `ArgumentNullException.ThrowIfNull` in non-boundary code | Warning | Yes (is-null check) | Per `code-shape.md §11` — trust the nullable signature. |
 | `STBL0005` | `_ = await ...` discard | Warning | Yes (remove discard) | Per `async-and-tasks.md §6` — bare await or documented fire-and-forget. |
 | `STBL0006` | Traditional constructor can be primary constructor (C# 12+) | Warning | Yes (convert) | Per `class-layout-and-tooling.md` — modern C# style. |

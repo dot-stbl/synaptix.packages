@@ -1,15 +1,15 @@
-using FluentAssertions;
+using Shouldly;
 
 namespace Synaptix.Text.Case.Unit;
 
-public class StringExtensionsToDotCase
+public sealed class StringExtensionsToTrainCaseShould
 {
     [Theory]
     [InlineData(null)]
-    public void ReturnArgumentNullException(string? source = null)
+    public void ReturnArgumentNullException(string source)
     {
-        Action act = () => source.ToDotCase();
-        act.Should().Throw<ArgumentNullException>();
+        Action act = () => source.ToTrainCase();
+        Should.Throw<ArgumentNullException>(act);
     }
 
     [Theory]
@@ -20,9 +20,9 @@ public class StringExtensionsToDotCase
     [InlineData("api/users/32/some_action_to_do?param=%a%")]
     [InlineData("api/users/32/Some_Action_to_do?param=%a%")]
     [InlineData("api/users/32/some.action.to.do?param=%a%")]
-    public void ReturnDotCaseUrl(string source)
+    public void ReturnTrainCaseUrl(string source)
     {
-        const string expectedResult = "api/users/32/some.action.to.do?param=%a%";
-        source.ToDotCase().Should().Be(expectedResult);
+        var expectedResult = "Api/Users/32/Some-Action-To-Do?Param=%A%";
+        source.ToTrainCase().ShouldBe(expectedResult);
     }
 }

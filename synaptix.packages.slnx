@@ -1,0 +1,4 @@
+<Solution>
+    <Project Path="src/text/Synaptix.Text.Case/Synaptix.Text.Case.csproj" />
+    <Project Path="src/text/Synaptix.Text.Case.Unit/Synaptix.Text.Case.Unit.csproj" />
+</Solution>

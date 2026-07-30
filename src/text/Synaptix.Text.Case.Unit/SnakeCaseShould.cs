@@ -1,15 +1,15 @@
-using FluentAssertions;
+using Shouldly;
 
 namespace Synaptix.Text.Case.Unit;
 
-public class StringExtensionsToKebabCase
+public sealed class StringExtensionsToSnakeCaseShould
 {
     [Theory]
     [InlineData(null)]
     public void ReturnArgumentNullException(string source)
     {
-        Action act = () => source.ToKebabCase();
-        act.Should().Throw<ArgumentNullException>();
+        Action act = () => source.ToSnakeCase();
+        Should.Throw<ArgumentNullException>(act);
     }
 
     [Theory]
@@ -20,9 +20,9 @@ public class StringExtensionsToKebabCase
     [InlineData("api/users/32/some_action_to_do?param=%a%")]
     [InlineData("api/users/32/Some_Action_to_do?param=%a%")]
     [InlineData("api/users/32/some.action.to.do?param=%a%")]
-    public void ReturnKebabCaseUrl(string source)
+    public void ReturnSnakeCaseUrl(string source)
     {
-        var expectedResult = "api/users/32/some-action-to-do?param=%a%";
-        source.ToKebabCase().Should().Be(expectedResult);
+        var expectedResult = "api/users/32/some_action_to_do?param=%a%";
+        source.ToSnakeCase().ShouldBe(expectedResult);
     }
 }

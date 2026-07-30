@@ -1,27 +1,71 @@
 <Project>
-    
-    <PropertyGroup>
-        <Authors>stbl.group, Alexander Sergeev</Authors>
-    </PropertyGroup>
 
-    <PropertyGroup>
-        <RepositoryType>git</RepositoryType>
-        <RepositoryUrl>https://github.com/dot-stbl/synaptix.packages.git</RepositoryUrl>
-    </PropertyGroup>
+  <PropertyGroup>
+    <RepositoryType>git</RepositoryType>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerSkipPrerelease>true</MinVerSkipPrerelease>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <PackageProjectUrl>stbl.com</PackageProjectUrl>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Copyright>Copyright © 2025 stbl inc, MIT license</Copyright>
-    </PropertyGroup>
+  <PropertyGroup>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Authors>.stbl, Alexander Sergeev</Authors>
+    <Copyright>Copyright (C) 2025-2026 .stbl, GPL-3.0-or-later</Copyright>
+    <PackageProjectUrl>https://github.com/dot-stbl/synaptix.packages</PackageProjectUrl>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    </PropertyGroup>
-    
-    <PropertyGroup>
-        <PackageTags>stbl.com, synaptix, extensions, sdk</PackageTags>
-    </PropertyGroup>
-    
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateRequiresPreviewFeaturesAttribute>false</GenerateRequiresPreviewFeaturesAttribute>
+  </PropertyGroup>
+
+  <!-- Strict mode: warnings = errors, analyzers enforced. -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <!-- Globally suppressed (each documented):
+       CS1573 — partial methods have no parameter XML doc. -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);CS1573</NoWarn>
+  </PropertyGroup>
+
+  <!-- Test projects: Coverlet, no XML docs. -->
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>cobertura</CoverletOutputFormat>
+    <CoverletOutput>./TestResults/$(MSBuildProjectName)_coverage.cobertura.xml</CoverletOutput>
+    <ExcludeByFile>**/Generated/**/*.cs</ExcludeByFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Roslynator.Analyzers" Version="4.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.15.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="4.0.*">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="MinVer" Version="7.*">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
 </Project>

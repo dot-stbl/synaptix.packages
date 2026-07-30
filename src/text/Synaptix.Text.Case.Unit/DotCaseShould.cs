@@ -1,15 +1,15 @@
-using FluentAssertions;
+using Shouldly;
 
 namespace Synaptix.Text.Case.Unit;
 
-public class StringExtensionsToPascalCase
+public sealed class StringExtensionsToDotCaseShould
 {
     [Theory]
     [InlineData(null)]
     public void ReturnArgumentNullException(string source)
     {
-        Action act = () => source.ToPascalCase();
-        act.Should().Throw<ArgumentNullException>();
+        Action act = () => source.ToDotCase();
+        Should.Throw<ArgumentNullException>(act);
     }
 
     [Theory]
@@ -20,9 +20,9 @@ public class StringExtensionsToPascalCase
     [InlineData("api/users/32/some_action_to_do?param=%a%")]
     [InlineData("api/users/32/Some_Action_to_do?param=%a%")]
     [InlineData("api/users/32/some.action.to.do?param=%a%")]
-    public void ReturnPascalCaseUrl(string source)
+    public void ReturnDotCaseUrl(string source)
     {
-        var expectedResult = "Api/Users/32/SomeActionToDo?Param=%A%";
-        source.ToPascalCase().Should().Be(expectedResult);
+        const string expectedResult = "api/users/32/some.action.to.do?param=%a%";
+        source.ToDotCase().ShouldBe(expectedResult);
     }
 }

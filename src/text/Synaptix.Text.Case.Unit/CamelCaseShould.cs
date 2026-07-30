@@ -1,15 +1,15 @@
-using FluentAssertions;
+using Shouldly;
 
 namespace Synaptix.Text.Case.Unit;
 
-public class StringExtensionsToCamelCase
+public sealed class StringExtensionsToCamelCaseShould
 {
     [Theory]
     [InlineData(null)]
     public void ReturnArgumentNullException(string source)
     {
         Action act = () => source.ToCamelCase();
-        act.Should().Throw<ArgumentNullException>();
+        Should.Throw<ArgumentNullException>(act);
     }
 
     [Theory]
@@ -23,6 +23,6 @@ public class StringExtensionsToCamelCase
     public void ReturnCamelCaseUrl(string source)
     {
         var expectedResult = "api/users/32/someActionToDo?param=%a%";
-        source.ToCamelCase().Should().Be(expectedResult);
+        source.ToCamelCase().ShouldBe(expectedResult);
     }
 }

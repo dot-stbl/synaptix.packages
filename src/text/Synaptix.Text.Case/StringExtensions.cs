@@ -65,10 +65,9 @@ public static class StringExtensions
     /// <exception cref="ArgumentNullException">if null</exception>
     public static string ToDotCase(this string source)
     {
-        if (source == null)
-            throw new ArgumentNullException(nameof(source));
-
-        return SymbolsPipe(
+        return source is null
+            ? throw new ArgumentNullException(nameof(source))
+            : SymbolsPipe(
             source,
             mainDelimiter: '.',
             newWordSymbolHandler: (s, disableFrontDelimiter)
@@ -83,10 +82,9 @@ public static class StringExtensions
     /// <exception cref="ArgumentNullException">if null</exception>
     public static string ToCamelCase(this string source)
     {
-        if (source == null)
-            throw new ArgumentNullException(nameof(source));
-
-        return SymbolsPipe(
+        return source is null
+            ? throw new ArgumentNullException(nameof(source))
+            : SymbolsPipe(
             source,
             mainDelimiter: '\0',
             newWordSymbolHandler: (s, disableFrontDelimiter)
@@ -101,10 +99,9 @@ public static class StringExtensions
     /// <exception cref="ArgumentNullException">if null</exception>
     public static string ToKebabCase(this string source)
     {
-        if (source == null)
-            throw new ArgumentNullException(nameof(source));
-
-        return SymbolsPipe(
+        return source is null
+            ? throw new ArgumentNullException(nameof(source))
+            : SymbolsPipe(
             source,
             mainDelimiter: '-',
             newWordSymbolHandler: (s, disableFrontDelimiter)
@@ -119,10 +116,9 @@ public static class StringExtensions
     /// <exception cref="ArgumentNullException">if null</exception>
     public static string ToSnakeCase(this string source)
     {
-        if (source == null)
-            throw new ArgumentNullException(nameof(source));
-
-        return SymbolsPipe(
+        return source is null
+            ? throw new ArgumentNullException(nameof(source))
+            : SymbolsPipe(
             source,
             mainDelimiter: '_',
             newWordSymbolHandler: (s, disableFrontDelimiter)
@@ -137,10 +133,9 @@ public static class StringExtensions
     /// <exception cref="ArgumentNullException">if null</exception>
     public static string ToPascalCase(this string source)
     {
-        if (source == null)
-            throw new ArgumentNullException(nameof(source));
-
-        return SymbolsPipe(
+        return source is null
+            ? throw new ArgumentNullException(nameof(source))
+            : SymbolsPipe(
             source,
             mainDelimiter: '\0',
             newWordSymbolHandler: (s, _) => [char.ToUpperInvariant(s)]);
@@ -154,10 +149,9 @@ public static class StringExtensions
     /// <exception cref="ArgumentNullException">if null</exception>
     public static string ToTrainCase(this string source)
     {
-        if (source == null)
-            throw new ArgumentNullException(nameof(source));
-
-        return SymbolsPipe(
+        return source is null
+            ? throw new ArgumentNullException(nameof(source))
+            : SymbolsPipe(
             source,
             mainDelimiter: '-',
             newWordSymbolHandler: (s, disableFrontDelimiter)

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  og-synaptix-packages.svg — OG image for synaptix.packages
+  Structure from assets/stbl/assets/og-default.svg (1200x630).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="synaptix.packages — open source .NET packages">
+  <title>synaptix.packages — open source .NET packages</title>
+  <rect width="1200" height="630" fill="#fff"/>
+  <rect x="100" y="240" width="100" height="100" fill="#000"/>
+  <text x="220" y="335"
+        font-family="'JetBrains Mono', ui-monospace, monospace"
+        font-size="180"
+        font-weight="700"
+        fill="#000"
+        letter-spacing="-6">synaptix</text>
+  <text x="100" y="450"
+        font-family="'JetBrains Mono', ui-monospace, monospace"
+        font-size="32"
+        font-weight="400"
+        fill="#666"
+        letter-spacing="-1">open source · .NET packages</text>
+  <text x="100" y="560"
+        font-family="'JetBrains Mono', ui-monospace, monospace"
+        font-size="22"
+        font-weight="400"
+        fill="#999"
+        letter-spacing="0">github.com/dot-stbl/synaptix.packages</text>
+</svg>

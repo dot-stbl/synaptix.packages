@@ -6,16 +6,16 @@ Per [`class-layout-and-tooling.md §1a`](https://github.com/dot-stbl/synaptix.pa
 
 ## CodeFix
 
-For a private static method, the code fix generates a `{ClassName}Extensions` file-scoped static class, available with C# 11+ file-scoped types. The moved method becomes an extension method by prepending a `this {ClassName} self` parameter:
+For a private static method, the code fix generates a `{ClassName}Helper` file-scoped static class, available with C# 11+ file-scoped types. The moved method remains a plain static method with its original parameter list:
 
 ```csharp
-file static class OrderServiceExtensions
+file static class OrderServiceHelper
 {
-    public static string FormatOrderId(this OrderService self, int id) => id.ToString();
+    public static string FormatOrderId(int id) => id.ToString();
 }
 ```
 
-Unqualified calls to the moved method inside instance methods of the original class are rewritten to extension syntax, such as `FormatOrderId(id)` becoming `this.FormatOrderId(id)`. Calls in static methods and private instance methods are not offered a fix; instance methods may depend on state that cannot be safely moved automatically.
+Calls to the moved method inside the original class are rewritten to the fully qualified helper call, such as `FormatOrderId(id)` or `this.FormatOrderId(id)` becoming `OrderServiceHelper.FormatOrderId(id)`. Already-qualified calls such as `other.FormatOrderId(id)` are left untouched. Calls from static methods are also rewritten.
 
 ## Exemptions
 
@@ -32,7 +32,7 @@ The analyzer skips:
 ❌ `public sealed class OrderProcessor { private void Validate(Order o) { ... } }`
 ✅ `public sealed class OrderProcessor(Validator validator) { ... }` — `Validator` is a separate injected type.
 ❌ `public sealed class StringExtensions { private static string Trim(string s) => ...; }` — should be on a `file static` class.
-✅ `file static class StringExtensions { public static string Trim(this string s) => ...; }`
+✅ `file static class StringHelper { public static string Trim(string value) => ...; }``
 
 ## Configuration
 

@@ -68,7 +68,7 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
                 continue;
             }
 
-            var helperClassName = classDecl.Identifier.Text + "Extensions";
+            var helperClassName = classDecl.Identifier.Text + "Helper";
             if (HasHelperClassCollision(classDecl, helperClassName))
             {
                 continue;
@@ -84,14 +84,14 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
 
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: "Extract to file-scoped extension class",
+                     title: "Extract to file-scoped static class",
                     createChangedDocument: ct => ExtractAsync(
                         context.Document,
                         classDecl,
                         methodDecl,
                         helperClassName,
                         ct),
-                    equivalenceKey: "STBL0003_ExtractToFileScopedExtensionClass"),
+                     equivalenceKey: "STBL0003_ExtractToFileScopedStaticClass"),
                 diagnostic);
         }
 
@@ -208,10 +208,7 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
 
         var workingRoot = root.TrackNodes(nodesToTrack);
 
-        // 1. Qualify unqualified call sites. Qualified calls (e.g. `Foo.Bar()`)
-        //    are left untouched — they typically resolve to public/internal
-        //    APIs and need manual handling if they relied on private
-        //    visibility.
+        // 1. Qualify unqualified call sites and calls written as `this.Method()`.
         foreach (var (original, replacement) in callSites)
         {
             var currentInvocation = workingRoot.GetCurrentNode(original);
@@ -230,18 +227,10 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
         // 2. Build the public-static version of the method. WithModifiers
         //    preserves the body, parameters, return type, attributes, XML docs,
         //    and trivia of the original.
-        var selfParameter = SyntaxFactory.Parameter(SyntaxFactory.Identifier("self"))
-            .WithType(SyntaxFactory.IdentifierName(currentClassDecl.Identifier.Text))
-            .WithModifiers(SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.ThisKeyword).WithTrailingTrivia(SyntaxFactory.Space)))
-            .WithTrailingTrivia(SyntaxFactory.Space);
-        var helperMethod = currentMethodDecl
-            .WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space),
-                    SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithTrailingTrivia(SyntaxFactory.Space)))
-            .WithParameterList(currentMethodDecl.ParameterList.WithParameters(
-                currentMethodDecl.ParameterList.Parameters.Insert(0, selfParameter)));
+        var helperMethod = currentMethodDecl.WithModifiers(
+            SyntaxFactory.TokenList(
+                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space),
+                SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithTrailingTrivia(SyntaxFactory.Space)));
 
         // 3. Build the file-scoped static class containing the moved method.
         var helperClass = SyntaxFactory.ClassDeclaration(helperClassName)
@@ -270,17 +259,19 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
 
         foreach (var inv in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
-            if (inv.Expression is MemberAccessExpressionSyntax)
+            if (inv.Expression is MemberAccessExpressionSyntax { Expression: not ThisExpressionSyntax })
             {
                 continue;
             }
 
-            if (inv.Expression is not IdentifierNameSyntax id)
+            var identifier = inv.Expression switch
             {
-                continue;
-            }
+                IdentifierNameSyntax id => id,
+                MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax, Name: IdentifierNameSyntax id } => id,
+                _ => null,
+            };
 
-            if (id.Identifier.Text != methodName)
+            if (identifier is null || identifier.Identifier.Text != methodName)
             {
                 continue;
             }
@@ -288,30 +279,23 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
             var enclosingMethod = inv.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
             if (enclosingMethod is null
                 || enclosingMethod == methodDecl
-                || enclosingMethod.FirstAncestorOrSelf<ClassDeclarationSyntax>() != classDecl
-                || enclosingMethod.Modifiers.Any(SyntaxKind.StaticKeyword))
+                || enclosingMethod.FirstAncestorOrSelf<ClassDeclarationSyntax>() != classDecl)
             {
                 continue;
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(inv);
-            if (symbolInfo.Symbol is null)
+            if (symbolInfo.Symbol is null
+                || !SymbolEqualityComparer.Default.Equals(symbolInfo.Symbol, targetSymbol))
             {
                 continue;
             }
 
-            if (!SymbolEqualityComparer.Default.Equals(symbolInfo.Symbol, targetSymbol))
-            {
-                continue;
-            }
-
-            var qualifiedAccess = SyntaxFactory.MemberAccessExpression(
+            var helperAccess = SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.ThisExpression(),
-                SyntaxFactory.IdentifierName(id.Identifier.Text))
-                .WithTriviaFrom(id);
-
-            var replacement = inv.WithExpression(qualifiedAccess);
+                SyntaxFactory.IdentifierName(classDecl.Identifier.Text + "Helper"),
+                SyntaxFactory.IdentifierName(identifier.Identifier.Text));
+            var replacement = inv.WithExpression(helperAccess.WithTriviaFrom(inv.Expression));
             result.Add((inv, replacement));
         }
 

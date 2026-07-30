@@ -10,26 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Planned
 - Additional packages under `src/system/`, `src/extensions/` (if revived).
 - npm packages under `src/js/` (bun workspace declared in `package.json`).
-- More analyzer rules (STBL0006+): `#region` directive ban, `catch (Exception)` outside top-level handler, etc.
 
 ## [Synaptix.Analyzers 1.0.0] — 2026-XX-XX
 
 First release of the Roslyn analyzer package. MIT licensed (community-friendly).
 
-### Added
+### Added (round 1: 5 rules)
 - `Synaptix.Analyzers` 1.0.0 — Roslyn analyzer encoding `.stbl` C# coding rules.
 - 5 diagnostic rules: `STBL0001` (banned type-name suffix), `STBL0002` (banned parameter abbreviation), `STBL0003` (private method in production class), `STBL0004` (`ArgumentNullException.ThrowIfNull` in non-boundary code), `STBL0005` (`_ = await ...` discard).
-- 2 CodeFixProviders shipped with v1.0: `STBL0001` (strip banned suffix), `STBL0005` (remove discard).
-- `STBL0003` CodeFix deferred to v1.1 (cross-file extraction; too risky for v1.0).
 - Per-package MinVer tags: `v-analyzers-<X.Y.Z>` → `Synaptix.Analyzers`; `v-text-<X.Y.Z>` → `Synaptix.Text.Case`. Global `<MinVerTagPrefix>v</MinVerTagPrefix>` removed.
 - Self-host: `Synaptix.Text.Case` and `Synaptix.Text.Case.Unit` reference the analyzer via `<ProjectReference OutputItemType="Analyzer" />` so the rules fire on this repo's own code.
 - Custom in-tree `AnalyzerTestRunner` (8 KB) replaces `Microsoft.CodeAnalysis.CSharp.Analyzer.Testing` 1.1.x, which hard-deps Roslyn 1.0.1 and breaks under .NET 8.
-- 48 analyzer tests (xUnit + Shouldly + custom runner), covering all 5 rules + the `STBL0005` CodeFix.
-- Per-rule docs under `src/analyzers/Synaptix.Analyzers/docs/rules/` (rationale, examples, CodeFix note, configuration).
+
+### Added (round 2: 5 more rules + 4 CodeFixes)
+- **STBL0006**: Traditional constructor can be primary constructor (C# 12+). CodeFix converts and removes the now-redundant field declarations.
+- **STBL0007**: Private field uses banned underscore prefix. CodeFix drops the `_` prefix and updates references.
+- **STBL0008**: Concrete class is not sealed. CodeFix adds the `sealed` modifier. (Architectural — kept as Warning, no fix isn't possible.)
+- **STBL0009**: Collection initializer can be a collection expression (C# 12+). CodeFix converts `new T[] { ... }`, `new List<T> { ... }`, etc. to `[...]` syntax.
+- **STBL0010**: `#region` directive is banned. Warning only — no CodeFix (region removal requires manual context).
+- **STBL0002 CodeFix**: rename banned parameter abbreviation to its expanded form (`ct` → `cancellationToken`, `req` → `request`, etc.).
+- **STBL0004 CodeFix**: replace `ArgumentNullException.ThrowIfNull(x)` with `if (x is null) throw new ArgumentNullException(nameof(x));`.
+- **STBL0001 fix**: longest-match suffix detection — `AddressViewModel` now reports `ViewModel` rather than `Model`.
+- 42 new tests (90 analyzer tests total, +42 from round 1's 48).
 
 ### Notes
-- `release.yml` rewritten to parse `v-<package>-<version>` tags, build/test only the matching project, pack exactly one `.nupkg`, and push to NuGet.org. Two tags needed for two packages.
-- All 96 tests green (48 text-case + 48 analyzer). `dotnet build` 0 warnings, 0 errors.
+- `release.yml` rewritten to parse `v-<package>-<version>` tags, build/test only the matching project, pack exactly one `.nupkg`, and push to NuGet.org via Trusted Publishing (OIDC, no API key required). Two tags needed for two packages.
+- All 138 tests green (48 text-case + 90 analyzer). `dotnet build` 0 warnings, 0 errors.
+- Severity philosophy: style rules with auto-fix surface as Warning + CodeFix (apply silently via Ctrl+. in IDE). Architectural rules (STBL0003, STBL0010) are Warning only — the right answer needs human judgment.
 
 ## [1.1.0] — 2026-XX-XX
 

@@ -68,7 +68,7 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
                 continue;
             }
 
-            var helperClassName = classDecl.Identifier.Text + "Helpers";
+            var helperClassName = classDecl.Identifier.Text + "Extensions";
             if (HasHelperClassCollision(classDecl, helperClassName))
             {
                 continue;
@@ -84,14 +84,14 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
 
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: "Extract to file-scoped static class",
+                    title: "Extract to file-scoped extension class",
                     createChangedDocument: ct => ExtractAsync(
                         context.Document,
                         classDecl,
                         methodDecl,
                         helperClassName,
                         ct),
-                    equivalenceKey: "STBL0003_ExtractToFileScopedStaticClass"),
+                    equivalenceKey: "STBL0003_ExtractToFileScopedExtensionClass"),
                 diagnostic);
         }
 
@@ -189,8 +189,9 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
         // against it.
         var callSites = CollectCallSitesToQualify(
             root,
+            classDecl,
+            methodDecl,
             methodName,
-            helperClassName,
             movedMethodSymbol,
             semanticModel);
 
@@ -229,10 +230,18 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
         // 2. Build the public-static version of the method. WithModifiers
         //    preserves the body, parameters, return type, attributes, XML docs,
         //    and trivia of the original.
-        var helperMethod = currentMethodDecl.WithModifiers(
-            SyntaxFactory.TokenList(
-                SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space),
-                SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithTrailingTrivia(SyntaxFactory.Space)));
+        var selfParameter = SyntaxFactory.Parameter(SyntaxFactory.Identifier("self"))
+            .WithType(SyntaxFactory.IdentifierName(currentClassDecl.Identifier.Text))
+            .WithModifiers(SyntaxFactory.TokenList(
+                SyntaxFactory.Token(SyntaxKind.ThisKeyword).WithTrailingTrivia(SyntaxFactory.Space)))
+            .WithTrailingTrivia(SyntaxFactory.Space);
+        var helperMethod = currentMethodDecl
+            .WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PublicKeyword).WithTrailingTrivia(SyntaxFactory.Space),
+                    SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithTrailingTrivia(SyntaxFactory.Space)))
+            .WithParameterList(currentMethodDecl.ParameterList.WithParameters(
+                currentMethodDecl.ParameterList.Parameters.Insert(0, selfParameter)));
 
         // 3. Build the file-scoped static class containing the moved method.
         var helperClass = SyntaxFactory.ClassDeclaration(helperClassName)
@@ -251,8 +260,9 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
 
     private static List<(InvocationExpressionSyntax Original, InvocationExpressionSyntax Replacement)> CollectCallSitesToQualify(
         SyntaxNode root,
+        ClassDeclarationSyntax classDecl,
+        MethodDeclarationSyntax methodDecl,
         string methodName,
-        string helperClassName,
         IMethodSymbol targetSymbol,
         SemanticModel semanticModel)
     {
@@ -275,6 +285,15 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
                 continue;
             }
 
+            var enclosingMethod = inv.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+            if (enclosingMethod is null
+                || enclosingMethod == methodDecl
+                || enclosingMethod.FirstAncestorOrSelf<ClassDeclarationSyntax>() != classDecl
+                || enclosingMethod.Modifiers.Any(SyntaxKind.StaticKeyword))
+            {
+                continue;
+            }
+
             var symbolInfo = semanticModel.GetSymbolInfo(inv);
             if (symbolInfo.Symbol is null)
             {
@@ -288,7 +307,7 @@ public sealed class Synaptix0003NoPrivateMethodCodeFixProvider : CodeFixProvider
 
             var qualifiedAccess = SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxFactory.IdentifierName(helperClassName),
+                SyntaxFactory.ThisExpression(),
                 SyntaxFactory.IdentifierName(id.Identifier.Text))
                 .WithTriviaFrom(id);
 

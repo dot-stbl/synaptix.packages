@@ -4,12 +4,18 @@
 
 Per [`class-layout-and-tooling.md §1a`](https://github.com/dot-stbl/synaptix.packages/blob/main/CLAUDE.md): production classes orchestrate; helpers live in their own files. A `private` method on a class is procedural style — it ties logic to one consumer, hides it from review and tests, and resists isolated unit testing.
 
-The fix is mechanical:
+## CodeFix
 
-| Original | Extracted |
-|----------|-----------|
-| `private static int Compute(int x) => x * 2;` | `internal static class FooHelpers { public static int Compute(int x) => x * 2; }` |
-| `private async Task<Bar> LoadAsync(...)` (with deps) | `internal sealed class BarLoader(IDep repo) { public Task<Bar> LoadAsync(...) }` injected into the original class |
+For a private static method, the code fix generates a `{ClassName}Extensions` file-scoped static class, available with C# 11+ file-scoped types. The moved method becomes an extension method by prepending a `this {ClassName} self` parameter:
+
+```csharp
+file static class OrderServiceExtensions
+{
+    public static string FormatOrderId(this OrderService self, int id) => id.ToString();
+}
+```
+
+Unqualified calls to the moved method inside instance methods of the original class are rewritten to extension syntax, such as `FormatOrderId(id)` becoming `this.FormatOrderId(id)`. Calls in static methods and private instance methods are not offered a fix; instance methods may depend on state that cannot be safely moved automatically.
 
 ## Exemptions
 
@@ -25,12 +31,8 @@ The analyzer skips:
 
 ❌ `public sealed class OrderProcessor { private void Validate(Order o) { ... } }`
 ✅ `public sealed class OrderProcessor(Validator validator) { ... }` — `Validator` is a separate injected type.
-❌ `public sealed class StringExtensions { private static string Trim(string s) => ...; }` — should be on a `file static class`.
+❌ `public sealed class StringExtensions { private static string Trim(string s) => ...; }` — should be on a `file static` class.
 ✅ `file static class StringExtensions { public static string Trim(this string s) => ...; }`
-
-## CodeFix
-
-None in v1.0 — extraction is a structural change spanning multiple files; deferred to v1.1.
 
 ## Configuration
 

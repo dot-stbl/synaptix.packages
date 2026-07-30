@@ -123,7 +123,7 @@ internal static class AnalyzerTestRunner
         newText.ShouldBe(fixedSource);
     }
 
-    private static async Task<(CSharpCompilation Compilation, ImmutableArray<Diagnostic> Diagnostics)> RunAnalyzerAsync(
+    internal static async Task<(CSharpCompilation Compilation, ImmutableArray<Diagnostic> Diagnostics)> RunAnalyzerAsync(
         DiagnosticAnalyzer analyzer,
         string source)
     {
@@ -172,7 +172,7 @@ internal static class AnalyzerTestRunner
         return (compilation, diagnostics);
     }
 
-    private static Solution CreateSolution(string source)
+    internal static Solution CreateSolution(string source)
     {
         var workspace = new AdhocWorkspace();
         var projectId = ProjectId.CreateNewId();

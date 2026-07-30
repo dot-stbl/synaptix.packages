@@ -1,15 +1,20 @@
 name: release
 
-# Publishes the .nupkg matching the tag prefix to NuGet.org, then creates
-# a GitHub Release with auto-generated notes.
+# Publishes the .nupkg matching the tag prefix to NuGet.org via Trusted
+# Publishing (OIDC), then creates a GitHub Release with auto-generated
+# notes.
 #
 # Tag format: v-<package>-<semver>, e.g.
 #   v-text-1.1.0         -> Synaptix.Text.Case
 #   v-analyzers-1.0.0    -> Synaptix.Analyzers
 #
-# Requires GitHub Environment 'nuget-publish' with secret NUGET_API_KEY
-# (Settings -> Environments -> nuget-publish -> Secrets). One tag triggers
-# exactly one package publish; multi-package releases need two tags.
+# NuGet Trusted Publishing policy (configured manually on nuget.org):
+#   Owner:         dot-stbl
+#   Repository:    synaptix.packages
+#   Workflow file: release.yml
+#   Environment:   nuget-publish
+# No long-lived API key required; NuGet/login@v1 mints a short-lived
+# token via OIDC and exchanges it for a one-shot API key.
 
 on:
   push:
@@ -18,6 +23,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write   # Required for NuGet Trusted Publishing via OIDC
 
 concurrency:
   group: release-${{ github.ref }}
@@ -85,19 +91,18 @@ jobs:
             exit 1
           fi
 
+      - name: NuGet login (OIDC -> short-lived API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: lowern1ght
+
       - name: Push to NuGet.org
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          TOKEN=$(echo -n "$NUGET_API_KEY" | tr -d '[:space:]')
-          if [ -z "$TOKEN" ]; then
-            echo "::error::NUGET_API_KEY secret is empty or not set!"
-            exit 1
-          fi
           echo "Publishing ${{ steps.parse.outputs.package }}@${{ steps.parse.outputs.version }} to NuGet.org..."
           dotnet nuget push ./artifacts/*.nupkg \
-            -k "$TOKEN" \
-            -s https://api.nuget.org/v3/index.json \
+            --api-key ${{ steps.login.outputs.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 
       - name: Create GitHub Release

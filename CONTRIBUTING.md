@@ -117,9 +117,10 @@ two independent releases.
 4. GitHub Actions `release.yml` runs automatically:
    - parses the tag → determines which package to build/test/pack
    - packs to `./artifacts/<single>.nupkg`
-   - verifies exactly one .nupkg (drift safety)
-   - pushes to NuGet.org (requires `NUGET_API_KEY` in GitHub Environment `nuget-publish`)
-   - creates a GitHub Release with auto-generated notes
+    - verifies exactly one .nupkg (drift safety)
+    - logs in via `NuGet/login@v1` (OIDC Trusted Publishing) → exchanges a short-lived token for a one-shot API key
+    - pushes to NuGet.org (no long-lived API key required)
+    - creates a GitHub Release with auto-generated notes
 
 Versioning follows [Semantic Versioning](https://semver.org/). Each package
 versions independently — bumps are per-csproj, not repo-wide.
@@ -134,6 +135,18 @@ git: `git checkout HEAD -- .githooks/`.
 Check `global.json` — pinned to 10.0.109 with `rollForward: latestFeature`.
 Install the matching SDK or update the pin.
 
-### NuGet push fails with 401
-The GitHub Environment `nuget-publish` must have `NUGET_API_KEY` set. Owner
-configures this in GitHub → Settings → Environments → `nuget-publish`.
+### NuGet push fails with 401 / "policy not found"
+We use NuGet Trusted Publishing (OIDC). No long-lived API key required.
+Instead, the workflow calls `NuGet/login@v1` which authenticates against
+a Trusted Publishing policy configured on nuget.org. Owner must:
+
+1. Visit https://www.nuget.org/account/TrustedPublishing
+2. Add a new policy:
+   - Owner: `dot-stbl`
+   - Repository: `synaptix.packages`
+   - Workflow file: `release.yml`
+   - Environment: `nuget-publish`
+
+If the error says "policy not found" or "unauthorized", the policy field
+mismatch is the usual cause — verify spelling and `owner: dot-stbl` (not
+your personal account).

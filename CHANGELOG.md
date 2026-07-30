@@ -55,6 +55,7 @@ First release of the Roslyn analyzer package. MIT licensed (community-friendly).
 - **Brand submodule** `assets/stbl` from `dot-stbl/.github` (logo, wordmark, lockup, OG templates, by-stbl.css).
 - **Package icons unified on canonical stbl parent mark** — both `Synaptix.Text.Case` and `Synaptix.Analyzers` use the same brand mark, rendered from `assets/stbl/assets/logo.svg` at 128×128 and 256×256 → `contents/stbl-128.png` / `contents/stbl-256.png` (B&W, monospace, cut-out quadrant — matches brand guideline).
 - **Synaptix-specific gradient icons removed** (`stbl.synaptix.{clr,gzs,gzx,ue,ue.2,wzs}.png`, `stbl.synaptix.png`) and `stbl.database.configuration.png` (orphan, package deleted) — all dropped from `contents/`. `assets/synaptix-packages/` (`synaptix by .stbl` lockup + OG image) also removed — canonical stbl mark replaces it.
+- **CI/CD migrated to NuGet Trusted Publishing** (`release.yml`): no long-lived API key, no `NUGET_API_KEY` secret in GitHub. Workflow mints a short-lived token via `NuGet/login@v1` (OIDC, `id-token: write` permission) and exchanges it for a one-shot API key. Trusted Publishing policy must be configured manually on nuget.org (owner: dot-stbl, repo: synaptix.packages, workflow: release.yml, environment: nuget-publish). `CONTRIBUTING.md` troubleshooting updated.
 
 ### Removed
 - `Synaptix.Color` — only 2 types, dead target frameworks (net5/net6/net7), empty `IByteStorage` interface.

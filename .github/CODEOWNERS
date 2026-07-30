@@ -17,3 +17,6 @@
 # Brand + publishing metadata
 /LICENSE                @dot-stbl/zero-team
 /synaptix.packages.slnx @dot-stbl/zero-team
+
+# Analyzers package (separate license: MIT, distinct lifecycle)
+/src/analyzers/         @dot-stbl/zero-team

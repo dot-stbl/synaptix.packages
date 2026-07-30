@@ -8,9 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Planned
-- `Synaptix.Analyzers` — separate Roslyn analyzer package (in `dot-stbl/synaptix.analyzers` repo, planned).
 - Additional packages under `src/system/`, `src/extensions/` (if revived).
 - npm packages under `src/js/` (bun workspace declared in `package.json`).
+- More analyzer rules (STBL0006+): `#region` directive ban, `catch (Exception)` outside top-level handler, etc.
+
+## [Synaptix.Analyzers 1.0.0] — 2026-XX-XX
+
+First release of the Roslyn analyzer package. MIT licensed (community-friendly).
+
+### Added
+- `Synaptix.Analyzers` 1.0.0 — Roslyn analyzer encoding `.stbl` C# coding rules.
+- 5 diagnostic rules: `STBL0001` (banned type-name suffix), `STBL0002` (banned parameter abbreviation), `STBL0003` (private method in production class), `STBL0004` (`ArgumentNullException.ThrowIfNull` in non-boundary code), `STBL0005` (`_ = await ...` discard).
+- 2 CodeFixProviders shipped with v1.0: `STBL0001` (strip banned suffix), `STBL0005` (remove discard).
+- `STBL0003` CodeFix deferred to v1.1 (cross-file extraction; too risky for v1.0).
+- Per-package MinVer tags: `v-analyzers-<X.Y.Z>` → `Synaptix.Analyzers`; `v-text-<X.Y.Z>` → `Synaptix.Text.Case`. Global `<MinVerTagPrefix>v</MinVerTagPrefix>` removed.
+- Self-host: `Synaptix.Text.Case` and `Synaptix.Text.Case.Unit` reference the analyzer via `<ProjectReference OutputItemType="Analyzer" />` so the rules fire on this repo's own code.
+- Custom in-tree `AnalyzerTestRunner` (8 KB) replaces `Microsoft.CodeAnalysis.CSharp.Analyzer.Testing` 1.1.x, which hard-deps Roslyn 1.0.1 and breaks under .NET 8.
+- 48 analyzer tests (xUnit + Shouldly + custom runner), covering all 5 rules + the `STBL0005` CodeFix.
+- Per-rule docs under `src/analyzers/Synaptix.Analyzers/docs/rules/` (rationale, examples, CodeFix note, configuration).
+
+### Notes
+- `release.yml` rewritten to parse `v-<package>-<version>` tags, build/test only the matching project, pack exactly one `.nupkg`, and push to NuGet.org. Two tags needed for two packages.
+- All 96 tests green (48 text-case + 48 analyzer). `dotnet build` 0 warnings, 0 errors.
 
 ## [1.1.0] — 2026-XX-XX
 

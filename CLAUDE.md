@@ -1,28 +1,34 @@
 # Synaptix Packages
 
-A monorepo of independent .NET libraries. Each package lives in its own
-folder under `src/`, has independent versioning via git tags (`vX.Y.Z`),
-and is published to NuGet.org independently.
+A monorepo of independent .NET libraries and Roslyn analyzers. Each package
+lives in its own folder under `src/`, has independent versioning via git
+tags (`v-<package>-<X.Y.Z>`), and is published to NuGet.org independently.
 
-> **Currently shipping:** `Synaptix.Text.Case` only. The monorepo structure
-> is in place for future packages (and possibly npm packages under `src/js/`).
+> **Currently shipping:** `Synaptix.Text.Case` + `Synaptix.Analyzers`. The
+> monorepo structure is in place for future packages (and possibly npm
+> packages under `src/js/`).
 
 ## Repository Structure
 
 ```
 synaptix.packages/
 ├── src/
-│   └── text/
-│       ├── Synaptix.Text.Case/              # library
-│       └── Synaptix.Text.Case.Unit/         # tests, side-by-side with library
+│   ├── text/
+│   │   ├── Synaptix.Text.Case/              # library (GPL-3.0)
+│   │   └── Synaptix.Text.Case.Unit/         # tests, side-by-side with library
+│   └── analyzers/
+│       ├── Synaptix.Analyzers/              # Roslyn analyzers (MIT)
+│       │   └── docs/rules/<id>.md            # per-rule rationale docs
+│       └── Synaptix.Analyzers.Tests/         # in-tree AnalyzerTestRunner
 ├── contents/                                # package icons (icon-pack)
-├── assets/stbl/                             # brand submodule (planned)
-├── .github/workflows/                       # CI + release + commit lint
+├── assets/stbl/                             # brand submodule
+├── assets/synaptix-packages/                 # monorepo lockup + OG image
+├── .github/workflows/                       # ci + release + lint-commits
 ├── .githooks/                               # local git hooks (commit-msg)
 ├── scripts/                                 # format.sh/ps1, autofix.sh/ps1
 ├── .editorconfig                            # C# code style + analyzer severity
 ├── Directory.Build.props                    # strict mode + analyzer packages + MinVer
-├── Directory.Packages.props                 # (centralized, currently disabled)
+├── Directory.Packages.props                 # (CPM disabled, versions per-csproj)
 ├── global.json                              # pinned SDK 10.0.109
 ├── synaptix.packages.slnx                   # XML solution
 ├── package.json                             # bun workspace root (for future npm pkgs)
@@ -50,10 +56,14 @@ Enforced via `.editorconfig` + analyzer packages in `Directory.Build.props`:
 
 ### Package versioning
 
-- Each `.csproj` gets its version from a git tag via MinVer (`vX.Y.Z`).
-- Tag prefixes: `v` (e.g., `v1.2.3`, `v2.0.0-alpha.1`).
+- Each `.csproj` gets its version from a git tag via MinVer.
+- Per-package tag prefixes:
+  - `Synaptix.Text.Case` → `v-text-<X.Y.Z>` (e.g., `v-text-1.1.0`)
+  - `Synaptix.Analyzers` → `v-analyzers-<X.Y.Z>` (e.g., `v-analyzers-1.0.0`)
 - Pre-release tags produce `<VersionSuffix>` automatically.
-- No manual `<Version>` in csproj — let MinVer derive it.
+- `<MinVerTagPrefix>` is set per-csproj. Global `<MinVerTagPrefix>` is **not**
+  set in `Directory.Build.props` to keep versioning independent.
+- `release.yml` parses the tag prefix to determine which package to build.
 
 ### License
 
@@ -101,15 +111,32 @@ dotnet test synaptix.packages.slnx --no-build
 ## CI/CD
 
 - `ci.yml` — build + test on every push/PR to master/main.
-- `release.yml` — pack + push to NuGet.org on `v*` tag. Uses GitHub Environment `nuget-publish` for `NUGET_API_KEY`.
+- `release.yml` — pack + push to NuGet.org on `v-*` tag (per-package).
+  Parses the tag prefix to determine which project to build, packs exactly
+  one `.nupkg`, verifies count, pushes, creates GitHub Release.
+  Uses GitHub Environment `nuget-publish` for `NUGET_API_KEY`.
 - `lint-commits.yml` — rejects AI-attribution trailers in PR commits.
 - `CODEOWNERS` — `@dot-stbl/zero-team` reviews all changes.
 - `dependabot.yml` — weekly NuGet + GitHub Actions updates.
 
+## Roslyn analyzers (self-host)
+
+`Synaptix.Analyzers` is referenced from `Synaptix.Text.Case.csproj` and
+`Synaptix.Text.Case.Unit.csproj` via:
+
+```xml
+<ProjectReference Include="..\..\analyzers\Synaptix.Analyzers\Synaptix.Analyzers.csproj"
+                OutputItemType="Analyzer"
+                ReferenceOutputAssembly="false" />
+```
+
+This makes the analyzers load at compile time only (no transitive DLL
+propagation). Switch to `<PackageReference Include="Synaptix.Analyzers" Version="1.0.0" />`
+after first NuGet publish.
+
 ## Roadmap
 
-- `Synaptix.Analyzers` — custom Roslyn analyzers encoding global rules
-  (private methods, banned suffixes, etc.) — separate repo at
-  `dot-stbl/synaptix.analyzers` (planned).
+- More analyzer rules: `STBL0006` (`#region` ban), `STBL0007`
+  (`catch (Exception)` outside top-level handler), etc.
 - More packages under `src/text/`, `src/system/`, etc.
 - Possible npm packages under `src/js/` (workspace already declared in `package.json`).

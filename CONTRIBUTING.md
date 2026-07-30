@@ -99,16 +99,25 @@ dotnet sln synaptix.packages.slnx add src/<area>/Synaptix.<Name>.Unit/Synaptix.<
 
 ## Release Process
 
-1. Update CHANGELOG.md with the version's changes.
-2. Commit: `[.stbl](feat/meta/release): prepare v1.2.3`.
+Tag format is **per-package**: `v-<package>-<X.Y.Z>`.
+
+- `v-text-<X.Y.Z>` → publishes `Synaptix.Text.Case`
+- `v-analyzers-<X.Y.Z>` → publishes `Synaptix.Analyzers`
+
+Each package has its own `<MinVerTagPrefix>` in its csproj. Two tags =
+two independent releases.
+
+1. Update `CHANGELOG.md` with the version's changes.
+2. Commit: `[.stbl](feat/meta/release): prepare v-text-1.1.0` (or `v-analyzers-1.0.0`).
 3. Tag and push:
    ```bash
-   git tag v1.2.3
-   git push origin v1.2.3
+   git tag v-text-1.1.0
+   git push origin v-text-1.1.0
    ```
 4. GitHub Actions `release.yml` runs automatically:
-   - builds + tests
-   - packs to `./artifacts/*.nupkg`
+   - parses the tag → determines which package to build/test/pack
+   - packs to `./artifacts/<single>.nupkg`
+   - verifies exactly one .nupkg (drift safety)
    - pushes to NuGet.org (requires `NUGET_API_KEY` in GitHub Environment `nuget-publish`)
    - creates a GitHub Release with auto-generated notes
 

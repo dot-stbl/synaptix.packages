@@ -22,9 +22,11 @@ bash scripts/autofix.sh
 # Pack (verify .nupkg builds)
 dotnet pack synaptix.packages.slnx -c Release -o ./artifacts
 
-# Tag a release (after CHANGELOG.md update)
-git tag v1.2.3
-git push origin v1.2.3   # triggers release.yml
+# Tag a release — per-package prefix
+git tag v-text-1.2.3          # publishes Synaptix.Text.Case
+git push origin v-text-1.2.3  # triggers release.yml
+git tag v-analyzers-1.0.0     # publishes Synaptix.Analyzers (next push)
+git push origin v-analyzers-1.0.0
 ```
 
 ## Key Conventions
@@ -40,13 +42,18 @@ git push origin v1.2.3   # triggers release.yml
 
 ### Versioning
 
-Each package versions independently via git tags + MinVer. To release:
+Each package versions independently via git tags + MinVer with
+**per-package tag prefixes**:
+
+- `v-text-<X.Y.Z>`      → publishes `Synaptix.Text.Case`
+- `v-analyzers-<X.Y.Z>`  → publishes `Synaptix.Analyzers`
+
+Each csproj has its own `<MinVerTagPrefix>`; global is unset. To release:
 
 1. Update `CHANGELOG.md` with the new version section.
-2. Edit `src/<area>/Synaptix.<Name>/Synaptix.Text.Case.csproj` — bump `<PackageReleaseNotes>` if you add one, otherwise just tag.
-3. Commit: `[.stbl](feat/meta/release): prepare v1.2.3`.
-4. Tag: `git tag v1.2.3 && git push origin v1.2.3`.
-5. CI builds + pushes to NuGet.org.
+2. Commit: `[.stbl](feat/meta/release): prepare v-text-1.1.0` (or `v-analyzers-1.0.0`).
+3. Tag: `git tag v-text-1.1.0 && git push origin v-text-1.1.0`.
+4. CI builds + tests + packs + pushes that ONE package to NuGet.org.
 
 ### Adding a Package
 

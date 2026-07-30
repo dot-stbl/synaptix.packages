@@ -63,19 +63,42 @@ public sealed class Synaptix0001NoBannedSuffixesAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        var matchedSuffix = FindBannedSuffix(name);
+        if (matchedSuffix is null)
+        {
+            return;
+        }
+
+        var location = Location.Create(typeDeclaration.SyntaxTree, identifier.Span);
+        context.ReportDiagnostic(Diagnostic.Create(
+            Rule,
+            location,
+            name,
+            matchedSuffix));
+    }
+
+    /// <summary>
+    /// Find the banned suffix on <paramref name="name"/>, preferring the longest
+    /// match so that "AddressViewModel" reports "ViewModel" rather than "Model".
+    /// </summary>
+    internal static string? FindBannedSuffix(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return null;
+        }
+
+        string? longest = null;
         foreach (var suffix in BannedSuffixes)
         {
             if (name.Length > suffix.Length
-                && name.EndsWith(suffix, StringComparison.Ordinal))
+                && name.EndsWith(suffix, StringComparison.Ordinal)
+                && (longest is null || suffix.Length > longest.Length))
             {
-                var location = Location.Create(typeDeclaration.SyntaxTree, identifier.Span);
-                context.ReportDiagnostic(Diagnostic.Create(
-                    Rule,
-                    location,
-                    name,
-                    suffix));
-                return;
+                longest = suffix;
             }
         }
+
+        return longest;
     }
 }

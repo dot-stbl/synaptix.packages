@@ -1,6 +1,4 @@
 using System;
-using System.Linq;
-using System.Text;
 
 namespace Synaptix.Text.Case;
 
@@ -9,54 +7,6 @@ namespace Synaptix.Text.Case;
 /// </summary>
 public static class StringExtensions
 {
-    private static readonly char[] Delimiters = [' ', '-', '_', '.'];
-
-    private static string SymbolsPipe(
-        string source,
-        char mainDelimiter,
-        Func<char, bool, char[]> newWordSymbolHandler)
-    {
-        var builder = new StringBuilder();
-
-        var disableFrontDelimiter = true;
-        var nextSymbolStartsNewWord = true;
-
-        foreach (var symbol in source)
-        {
-            if (Delimiters.Contains(symbol))
-            {
-                if (symbol == mainDelimiter)
-                {
-                    builder.Append(symbol);
-                    disableFrontDelimiter = true;
-                }
-
-                nextSymbolStartsNewWord = true;
-            }
-            else if (!char.IsLetterOrDigit(symbol))
-            {
-                builder.Append(symbol);
-                disableFrontDelimiter = true;
-                nextSymbolStartsNewWord = true;
-            }
-            else
-            {
-                if (nextSymbolStartsNewWord || char.IsUpper(symbol))
-                {
-                    builder.Append(newWordSymbolHandler(symbol, disableFrontDelimiter));
-                    disableFrontDelimiter = false;
-                    nextSymbolStartsNewWord = false;
-                }
-                else
-                {
-                    builder.Append(symbol);
-                }
-            }
-        }
-
-        return builder.ToString();
-    }
-
     /// <summary>
     /// Convert <paramref name="source"/> to <c>DotCase</c>
     /// </summary>
@@ -67,7 +17,7 @@ public static class StringExtensions
     {
         return source is null
             ? throw new ArgumentNullException(nameof(source))
-            : SymbolsPipe(
+            : StringCaseHelpers.SymbolsPipe(
             source,
             mainDelimiter: '.',
             newWordSymbolHandler: (s, disableFrontDelimiter)
@@ -84,7 +34,7 @@ public static class StringExtensions
     {
         return source is null
             ? throw new ArgumentNullException(nameof(source))
-            : SymbolsPipe(
+            : StringCaseHelpers.SymbolsPipe(
             source,
             mainDelimiter: '\0',
             newWordSymbolHandler: (s, disableFrontDelimiter)
@@ -101,7 +51,7 @@ public static class StringExtensions
     {
         return source is null
             ? throw new ArgumentNullException(nameof(source))
-            : SymbolsPipe(
+            : StringCaseHelpers.SymbolsPipe(
             source,
             mainDelimiter: '-',
             newWordSymbolHandler: (s, disableFrontDelimiter)
@@ -118,7 +68,7 @@ public static class StringExtensions
     {
         return source is null
             ? throw new ArgumentNullException(nameof(source))
-            : SymbolsPipe(
+            : StringCaseHelpers.SymbolsPipe(
             source,
             mainDelimiter: '_',
             newWordSymbolHandler: (s, disableFrontDelimiter)
@@ -135,7 +85,7 @@ public static class StringExtensions
     {
         return source is null
             ? throw new ArgumentNullException(nameof(source))
-            : SymbolsPipe(
+            : StringCaseHelpers.SymbolsPipe(
             source,
             mainDelimiter: '\0',
             newWordSymbolHandler: (s, _) => [char.ToUpperInvariant(s)]);
@@ -151,7 +101,7 @@ public static class StringExtensions
     {
         return source is null
             ? throw new ArgumentNullException(nameof(source))
-            : SymbolsPipe(
+            : StringCaseHelpers.SymbolsPipe(
             source,
             mainDelimiter: '-',
             newWordSymbolHandler: (s, disableFrontDelimiter)

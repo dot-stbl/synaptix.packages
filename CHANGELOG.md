@@ -53,9 +53,8 @@ First release of the Roslyn analyzer package. MIT licensed (community-friendly).
 - **`CODEOWNERS`** uses `@dot-stbl/zero-team`.
 - **`dependabot.yml`** weekly NuGet + GitHub Actions updates.
 - **Brand submodule** `assets/stbl` from `dot-stbl/.github` (logo, wordmark, lockup, OG templates, by-stbl.css).
-- **Synaptix package icons** in `contents/` (`stbl.synaptix.png`, `stbl.synaptix.ue.png`, `stbl.synaptix.ue.2.png`, `stbl.synaptix.clr.png`, `stbl.synaptix.gzs.png`, `stbl.synaptix.gzx.png`, `stbl.synaptix.wzs.png`, `stbl.database.configuration.png`) — preserved for reuse across packages.
-- **`Synaptix.Text.Case` icon**: `stbl.synaptix.ue.png` (synaptix-mark variant — synaptix as a child of `.stbl`, color-graded to fit the library's identity).
-- **Brand lockup & OG image** for the monorepo itself at `assets/synaptix-packages/` ("synaptix by .stbl" — B&W, monospace, cut-out quadrant mark).
+- **Package icons unified on canonical stbl parent mark** — both `Synaptix.Text.Case` and `Synaptix.Analyzers` use the same brand mark, rendered from `assets/stbl/assets/logo.svg` at 128×128 and 256×256 → `contents/stbl-128.png` / `contents/stbl-256.png` (B&W, monospace, cut-out quadrant — matches brand guideline).
+- **Synaptix-specific gradient icons removed** (`stbl.synaptix.{clr,gzs,gzx,ue,ue.2,wzs}.png`, `stbl.synaptix.png`) and `stbl.database.configuration.png` (orphan, package deleted) — all dropped from `contents/`. `assets/synaptix-packages/` (`synaptix by .stbl` lockup + OG image) also removed — canonical stbl mark replaces it.
 
 ### Removed
 - `Synaptix.Color` — only 2 types, dead target frameworks (net5/net6/net7), empty `IByteStorage` interface.

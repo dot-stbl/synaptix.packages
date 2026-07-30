@@ -26,16 +26,16 @@
     </PropertyGroup>
     
     <PropertyGroup>
-        <PackageIcon>stbl.synaptix.ue.png</PackageIcon>
+        <PackageIcon>stbl-128.png</PackageIcon>
         <PackageTags>text, string, case, extensions, dot, camel, kebab, train</PackageTags>
         <Description>Change any string case to PascalCase/camelCase/kebab-case/snake_case/Train-Case/dot.case</Description>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="..\..\..\contents\stbl.synaptix.ue.png">
+        <None Include="..\..\..\contents\stbl-128.png">
           <Pack>True</Pack>
           <PackagePath/>
-          <Link>stbl.synaptix.ue.png</Link>
+          <Link>stbl-128.png</Link>
         </None>
         <None Include="README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>

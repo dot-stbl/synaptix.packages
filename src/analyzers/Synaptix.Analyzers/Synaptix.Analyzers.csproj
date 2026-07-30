@@ -22,7 +22,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageDescription>Roslyn analyzers encoding .stbl C# coding rules. Companion to synaptix.packages.</PackageDescription>
     <PackageTags>roslyn;analyzer;static-analysis;synaptix;stbl;code-quality</PackageTags>
-    <PackageIcon>stbl.synaptix.gzs.png</PackageIcon>
+    <PackageIcon>stbl-256.png</PackageIcon>
     <Authors>.stbl</Authors>
     <Copyright>Copyright (C) 2025-2026 .stbl, MIT</Copyright>
     <PackageProjectUrl>https://github.com/dot-stbl/synaptix.packages</PackageProjectUrl>
@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\contents\stbl.synaptix.gzs.png" Pack="true" PackagePath="" Link="stbl.synaptix.gzs.png" />
+    <None Include="..\..\..\contents\stbl-256.png" Pack="true" PackagePath="" Link="stbl-256.png" />
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 

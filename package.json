@@ -1,0 +1,18 @@
+{
+  "name": "synaptix.packages",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "src/js/*"
+  ],
+  "scripts": {
+    "format": "bash scripts/format.sh",
+    "autofix": "bash scripts/autofix.sh",
+    "build": "dotnet build synaptix.packages.slnx",
+    "test": "dotnet test synaptix.packages.slnx",
+    "pack": "dotnet pack synaptix.packages.slnx -c Release -o ./artifacts"
+  },
+  "devDependencies": {
+    "@dot-stbl/regent": "^0.6.0"
+  }
+}

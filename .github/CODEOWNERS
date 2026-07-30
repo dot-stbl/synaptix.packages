@@ -1,0 +1,19 @@
+# Default owners for everything
+*                 @dot-stbl/zero-team
+
+# CI / release workflows
+/.github/         @dot-stbl/zero-team
+
+# Build tooling
+/Directory.Build.props   @dot-stbl/zero-team
+/Directory.Packages.props @dot-stbl/zero-team
+/global.json             @dot-stbl/zero-team
+/.config/                @dot-stbl/zero-team
+
+# Lockfile metadata
+/package.json           @dot-stbl/zero-team
+/bun.lock               @dot-stbl/zero-team
+
+# Brand + publishing metadata
+/LICENSE                @dot-stbl/zero-team
+/synaptix.packages.slnx @dot-stbl/zero-team

@@ -1,8 +1,19 @@
 name: release
 
+# Publishes the .nupkg matching the tag prefix to NuGet.org, then creates
+# a GitHub Release with auto-generated notes.
+#
+# Tag format: v-<package>-<semver>, e.g.
+#   v-text-1.1.0         -> Synaptix.Text.Case
+#   v-analyzers-1.0.0    -> Synaptix.Analyzers
+#
+# Requires GitHub Environment 'nuget-publish' with secret NUGET_API_KEY
+# (Settings -> Environments -> nuget-publish -> Secrets). One tag triggers
+# exactly one package publish; multi-package releases need two tags.
+
 on:
   push:
-    tags: ['v*']
+    tags: ['v-*']
   workflow_dispatch:
 
 permissions:
@@ -21,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0   # MinVer requires full history
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
@@ -35,20 +46,44 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj', 'global.json') }}
           restore-keys: ${{ runner.os }}-nuget-
 
-      - name: Extract version from tag
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+      - name: Parse tag -> package + version
+        id: parse
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          if [[ "$TAG" == v-text-* ]]; then
+            echo "package=text"           >> "$GITHUB_OUTPUT"
+            echo "version=${TAG#v-text-}"  >> "$GITHUB_OUTPUT"
+          elif [[ "$TAG" == v-analyzers-* ]]; then
+            echo "package=analyzers"           >> "$GITHUB_OUTPUT"
+            echo "version=${TAG#v-analyzers-}"  >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Unknown tag prefix in '$TAG'. Expected v-text-* or v-analyzers-*."
+            exit 1
+          fi
 
       - name: Restore
         run: dotnet restore synaptix.packages.slnx
 
-      - name: Build + test
+      - name: Build + test only the matching package
         run: |
-          dotnet build synaptix.packages.slnx -c Release --no-restore
-          dotnet test src/text/Synaptix.Text.Case.Unit/Synaptix.Text.Case.Unit.csproj --no-build --nologo
+          PACKAGE="${{ steps.parse.outputs.package }}"
+          dotnet build "src/${PACKAGE}/Synaptix.${PACKAGE^}/Synaptix.${PACKAGE^}.csproj" -c Release --no-restore
+          dotnet test  "src/${PACKAGE}/Synaptix.${PACKAGE^}.Tests/Synaptix.${PACKAGE^}.Tests.csproj" --no-build --nologo
 
-      - name: Pack
-        run: dotnet pack synaptix.packages.slnx -c Release --no-build -o ./artifacts
+      - name: Pack matching project
+        run: |
+          PACKAGE="${{ steps.parse.outputs.package }}"
+          dotnet pack "src/${PACKAGE}/Synaptix.${PACKAGE^}/Synaptix.${PACKAGE^}.csproj" -c Release --no-build -o ./artifacts
+
+      - name: Verify exactly one .nupkg produced
+        run: |
+          COUNT=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l)
+          if [ "$COUNT" -ne 1 ]; then
+            echo "::error::Expected 1 .nupkg in ./artifacts, got $COUNT"
+            ls -la ./artifacts/
+            exit 1
+          fi
 
       - name: Push to NuGet.org
         env:
@@ -59,11 +94,11 @@ jobs:
             echo "::error::NUGET_API_KEY secret is empty or not set!"
             exit 1
           fi
-          echo "Publishing to NuGet.org..."
-          for pkg in ./artifacts/*.nupkg; do
-            echo "Pushing $pkg..."
-            dotnet nuget push "$pkg" -k "$TOKEN" -s https://api.nuget.org/v3/index.json --skip-duplicate
-          done
+          echo "Publishing ${{ steps.parse.outputs.package }}@${{ steps.parse.outputs.version }} to NuGet.org..."
+          dotnet nuget push ./artifacts/*.nupkg \
+            -k "$TOKEN" \
+            -s https://api.nuget.org/v3/index.json \
+            --skip-duplicate
 
       - name: Create GitHub Release
         if: always()

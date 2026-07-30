@@ -14,7 +14,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <NoWarn>$(NoWarn);STBL0001;STBL0002;STBL0003;STBL0004;STBL0005;RS2008;CS1591;CS1573;RCS1246;RCS1163;IDE0060</NoWarn>
+    <NoWarn>$(NoWarn);STBL0001;STBL0002;STBL0003;STBL0004;STBL0005;STBL0006;STBL0007;STBL0008;STBL0009;STBL0010;RS2008;CS1591;CS1573;RCS1246;RCS1163;IDE0060</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

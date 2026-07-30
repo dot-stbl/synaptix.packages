@@ -32,6 +32,21 @@ public sealed class Synaptix0002NoBannedParamAbbrevAnalyzer : DiagnosticAnalyzer
         "x",
         "tmp");
 
+    public static readonly ImmutableDictionary<string, string> ExpansionMap =
+        ImmutableDictionary.CreateRange(StringComparer.Ordinal,
+            new KeyValuePair<string, string>[]
+            {
+                new("ct", "cancellationToken"),
+                new("req", "request"),
+                new("resp", "response"),
+                new("err", "error"),
+                new("msg", "message"),
+                new("ex", "exception"),
+                new("svc", "service"),
+                new("u", "user"),
+                new("tmp", "temporary"),
+            });
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
         ImmutableArray.Create(Rule);
 
@@ -40,7 +55,7 @@ public sealed class Synaptix0002NoBannedParamAbbrevAnalyzer : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
-        context.RegisterCompilationStartAction(compilationContext =>
+        context.RegisterCompilationStartAction(static compilationContext =>
         {
             compilationContext.RegisterSymbolAction(
                 AnalyzeMethod,

@@ -23,6 +23,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Synaptix.Text.Case\Synaptix.Text.Case.csproj" />
+    <!-- Self-host Synaptix.Analyzers in tests too -->
+    <ProjectReference Include="..\..\analyzers\Synaptix.Analyzers\Synaptix.Analyzers.csproj"
+                    OutputItemType="Analyzer"
+                    ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,4 +1,14 @@
 <Solution>
+
+    <!-- =================================================================== -->
+    <!-- Synaptix packages monorepo. .NET SDK 10+.                            -->
+    <!-- Each <Project> is an independent NuGet package; independent           -->
+    <!-- semver is derived from git tags (v-<area>-<X.Y.Z>) via MinVer.       -->
+    <!-- =================================================================== -->
+
     <Project Path="src/text/Synaptix.Text.Case/Synaptix.Text.Case.csproj" />
     <Project Path="src/text/Synaptix.Text.Case.Unit/Synaptix.Text.Case.Unit.csproj" />
+    <Project Path="src/analyzers/Synaptix.Analyzers/Synaptix.Analyzers.csproj" />
+    <Project Path="src/analyzers/Synaptix.Analyzers.Tests/Synaptix.Analyzers.Tests.csproj" />
+
 </Solution>

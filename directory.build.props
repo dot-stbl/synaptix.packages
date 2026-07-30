@@ -2,7 +2,10 @@
 
   <PropertyGroup>
     <RepositoryType>git</RepositoryType>
-    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <!--
+      Per-package MinVer prefixes live in each .csproj (e.g. v-text-, v-analyzers-).
+      Global prefix removed to allow independent versioning.
+    -->
     <MinVerSkipPrerelease>true</MinVerSkipPrerelease>
   </PropertyGroup>
 

@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <OutputType>Library</OutputType>
-        <LangVersion>latest</LangVersion>
-        <TargetFramework>netstandard2.0</TargetFramework>
-    </PropertyGroup>
+<PropertyGroup>
+    <OutputType>Library</OutputType>
+    <LangVersion>latest</LangVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <MinVerTagPrefix>v-text-</MinVerTagPrefix>
+  </PropertyGroup>
 
     <PropertyGroup>
         <NoWarn>$(NoWarn)</NoWarn>
@@ -37,6 +38,19 @@
           <Link>stbl.synaptix.ue.png</Link>
         </None>
         <None Include="README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+
+    <!--
+      Self-host Synaptix.Analyzers as a Roslyn analyzer reference.
+      OutputItemType=Analyzer loads the DLL at compile time only;
+      ReferenceOutputAssembly=false prevents transitive DLL propagation.
+      Switch to <PackageReference Include="Synaptix.Analyzers" Version="1.0.0" />
+      with PrivateAssets=all after first NuGet publish.
+    -->
+    <ItemGroup>
+      <ProjectReference Include="..\..\analyzers\Synaptix.Analyzers\Synaptix.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
     </ItemGroup>
     
 </Project>

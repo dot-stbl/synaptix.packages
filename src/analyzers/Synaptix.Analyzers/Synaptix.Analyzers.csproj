@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <MinVerTagPrefix>v-analyzers-</MinVerTagPrefix>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <NoWarn>$(NoWarn);STBL0001;STBL0002;STBL0003;STBL0004;STBL0005;RS2008;CS1591;CS1573;RCS1246;RCS1163;IDE0060</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Synaptix.Analyzers</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageDescription>Roslyn analyzers encoding .stbl C# coding rules. Companion to synaptix.packages.</PackageDescription>
+    <PackageTags>roslyn;analyzer;static-analysis;synaptix;stbl;code-quality</PackageTags>
+    <PackageIcon>stbl.synaptix.gzs.png</PackageIcon>
+    <Authors>.stbl</Authors>
+    <PackageProjectUrl>https://github.com/dot-stbl/synaptix.packages</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.100" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\contents\stbl.synaptix.gzs.png" Pack="true" PackagePath="" Link="stbl.synaptix.gzs.png" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

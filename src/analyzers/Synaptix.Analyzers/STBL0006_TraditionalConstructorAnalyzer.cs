@@ -123,7 +123,14 @@ public sealed class Synaptix0006TraditionalConstructorAnalyzer : DiagnosticAnaly
                 return;
             }
 
-            if (assignment.Left is not IdentifierNameSyntax)
+            var leftName = assignment.Left switch
+            {
+                IdentifierNameSyntax identifier => identifier.Identifier.Text,
+                MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax, Name: { Identifier: var identifier } } => identifier.Text,
+                _ => null,
+            };
+
+            if (leftName is null)
             {
                 return;
             }

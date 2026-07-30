@@ -190,13 +190,99 @@ public sealed class OrderService
     }
 
     [Fact]
-    public async Task CodeFixKeepsFieldsWithUnderscoreNames()
+    public async Task CodeFixRemovesUnderscoreFieldWhenMatchesParam()
     {
         const string source = "public sealed class OrderService { private readonly int _x; private readonly int _y; public OrderService(int x, int y) { _x = x; _y = y; } }";
 
-        string fixedSource = "public sealed class OrderService(int x, int y) { private readonly int _x; private readonly int _y; }".Replace("\n", "\r\n");
+        string fixedSource = "public sealed class OrderService(int x, int y) { }".Replace("\n", "\r\n");
         string sourceCrlf = source.Replace("\n", "\r\n");
 
         await AnalyzerTestRunner.VerifyCodeFixAsync(Analyzer, Fixer, sourceCrlf, fixedSource);
+    }
+
+    [Fact]
+    public async Task CodeFixHandlesThisXAssignment()
+    {
+        const string source = "public sealed class OrderService { private readonly int _x; private readonly int _y; public OrderService(int x, int y) { _x = x; this._y = y; } }";
+
+        string fixedSource = "public sealed class OrderService(int x, int y) { }".Replace("\n", "\r\n");
+        string sourceCrlf = source.Replace("\n", "\r\n");
+
+        await AnalyzerTestRunner.VerifyCodeFixAsync(Analyzer, Fixer, sourceCrlf, fixedSource);
+    }
+
+    [Fact]
+    public async Task CodeFixRemovesUnderscoreFieldAndRewritesUsages()
+    {
+        const string source = "public sealed class OrderService { private readonly string _logger; public OrderService(string logger) { _logger = logger; } public void Use() { _logger.Info(\"hi\"); } }";
+
+        string fixedSource = "public sealed class OrderService(string logger) { public void Use() { logger.Info(\"hi\"); } }".Replace("\n", "\r\n");
+        string sourceCrlf = source.Replace("\n", "\r\n");
+
+        await AnalyzerTestRunner.VerifyCodeFixAsync(Analyzer, Fixer, sourceCrlf, fixedSource);
+    }
+
+    [Fact]
+    public async Task CodeFixKeepsUnderscoreFieldWhenNoMatchingParam()
+    {
+        const string source = "public sealed class OrderService { private readonly int _foo; private readonly int x; public OrderService(int x) { x = x; } }";
+
+        string fixedSource = "public sealed class OrderService(int x) { private readonly int _foo; }".Replace("\n", "\r\n");
+        string sourceCrlf = source.Replace("\n", "\r\n");
+
+        await AnalyzerTestRunner.VerifyCodeFixAsync(Analyzer, Fixer, sourceCrlf, fixedSource);
+    }
+
+    [Fact]
+    public async Task CodeFixHandlesNestedClassReferences()
+    {
+        const string source = "public sealed class Outer { private readonly string _logger; public Outer(string logger) { _logger = logger; } public void Use() { _logger.Info(\"hi\"); } private sealed class Nested { public void Inner() { var _logger = \"local\"; System.Console.WriteLine(_logger); } } }";
+
+        string fixedSource = "public sealed class Outer(string logger) { public void Use() { logger.Info(\"hi\"); } private sealed class Nested { public void Inner() { var _logger = \"local\"; System.Console.WriteLine(_logger); } } }".Replace("\n", "\r\n");
+        string sourceCrlf = source.Replace("\n", "\r\n");
+
+        await AnalyzerTestRunner.VerifyCodeFixAsync(Analyzer, Fixer, sourceCrlf, fixedSource);
+    }
+
+    [Fact]
+    public async Task FlagsThisAssignmentStyle()
+    {
+        const string source = @"
+public sealed class OrderService
+{
+    private readonly int _x;
+    private readonly int _y;
+
+    public OrderService(int x, int y)
+    {
+        this._x = x;
+        this._y = y;
+    }
+}
+";
+        await AnalyzerTestRunner.VerifyAnalyzerAsync(
+            Analyzer,
+            source,
+            ("STBL0006", 0, 0, 0, 0, new[] { "OrderService" }));
+    }
+
+    [Fact]
+    public async Task FlagsUnderscoreFieldWithMatchingParam()
+    {
+        const string source = @"
+public sealed class OrderService
+{
+    private readonly string _logger;
+
+    public OrderService(string logger)
+    {
+        _logger = logger;
+    }
+}
+";
+        await AnalyzerTestRunner.VerifyAnalyzerAsync(
+            Analyzer,
+            source,
+            ("STBL0006", 0, 0, 0, 0, new[] { "OrderService" }));
     }
 }

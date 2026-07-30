@@ -94,9 +94,16 @@ public sealed class Synaptix0006TraditionalConstructorCodeFixProvider : CodeFixP
                 continue;
             }
 
-            if (assignment.Left is IdentifierNameSyntax left)
+            var leftName = assignment.Left switch
             {
-                _ = assignedNames.Add(left.Identifier.Text);
+                IdentifierNameSyntax identifier => identifier.Identifier.Text,
+                MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax, Name: { Identifier: var identifier } } => identifier.Text,
+                _ => null,
+            };
+
+            if (leftName is not null)
+            {
+                _ = assignedNames.Add(leftName);
             }
         }
 
@@ -105,6 +112,8 @@ public sealed class Synaptix0006TraditionalConstructorCodeFixProvider : CodeFixP
             StringComparer.Ordinal);
 
         var newMembers = new List<MemberDeclarationSyntax>();
+        var fieldRenames = new Dictionary<string, string>(StringComparer.Ordinal);
+
         foreach (var member in classDeclaration.Members)
         {
             if (member == ctor)
@@ -113,12 +122,34 @@ public sealed class Synaptix0006TraditionalConstructorCodeFixProvider : CodeFixP
             }
 
             if (member is FieldDeclarationSyntax field
-                && ShouldRemoveField(field, assignedNames, parameterNames))
+                && field.Declaration.Variables.Count == 1
+                && field.Declaration.Variables[0].Initializer is null)
             {
-                continue;
+                var match = MatchFieldToParam(
+                    field.Declaration.Variables[0].Identifier.Text,
+                    parameterNames);
+
+                if (match.ParamName is not null)
+                {
+                    if (match.ParamName != match.FieldName)
+                    {
+                        fieldRenames[match.FieldName] = match.ParamName;
+                    }
+                    continue;
+                }
             }
 
             newMembers.Add(member);
+        }
+
+        if (fieldRenames.Count > 0)
+        {
+            var rewriter = new FieldReferenceRewriter(fieldRenames);
+            newMembers = newMembers
+                .Select(m => m is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax
+                    ? m
+                    : (MemberDeclarationSyntax)(rewriter.Visit(m) ?? m))
+                .ToList();
         }
 
         var newParameterList = SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters));
@@ -132,26 +163,42 @@ public sealed class Synaptix0006TraditionalConstructorCodeFixProvider : CodeFixP
         return document.WithSyntaxRoot(newRoot);
     }
 
-    private static bool ShouldRemoveField(
-        FieldDeclarationSyntax field,
-        HashSet<string> assignedNames,
+    private static (string? ParamName, string FieldName) MatchFieldToParam(
+        string fieldName,
         HashSet<string> parameterNames)
     {
-        var variables = field.Declaration.Variables;
-        if (variables.Count != 1)
+        if (parameterNames.Contains(fieldName))
         {
-            return false;
+            return (fieldName, fieldName);
         }
 
-        var variable = variables[0];
-
-        if (variable.Initializer is not null)
+        if (parameterNames.Contains("_" + fieldName))
         {
-            return false;
+            return ("_" + fieldName, fieldName);
         }
 
-        var fieldName = variable.Identifier.Text;
+        var trimmed = fieldName.TrimStart('_');
+        if (trimmed.Length != fieldName.Length && parameterNames.Contains(trimmed))
+        {
+            return (trimmed, fieldName);
+        }
 
-        return assignedNames.Contains(fieldName) && parameterNames.Contains(fieldName);
+        return (null, fieldName);
+    }
+
+    private sealed class FieldReferenceRewriter(IReadOnlyDictionary<string, string> fieldToParam) : CSharpSyntaxRewriter
+    {
+        public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
+        {
+            return fieldToParam.TryGetValue(node.Identifier.Text, out var newName)
+                ? node.WithIdentifier(
+                    SyntaxFactory.Identifier(newName)
+                        .WithLeadingTrivia(node.GetLeadingTrivia())
+                        .WithTrailingTrivia(node.GetTrailingTrivia()))
+                // boundary: base.VisitIdentifierName returns SyntaxNode? but the override is
+                // declared SyntaxNode; for an IdentifierNameSyntax with no rename, the rewriter
+                // returns the same node unchanged, which is never null.
+                : base.VisitIdentifierName(node)!;
+        }
     }
 }

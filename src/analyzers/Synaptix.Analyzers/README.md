@@ -49,7 +49,8 @@ Each rule maps to a specific rule file in this repo:
 - [STBL0003](./docs/rules/STBL0003-no-private-method.md)
 - [STBL0004](./docs/rules/STBL0004-no-throw-if-null.md)
 - [STBL0005](./docs/rules/STBL0005-no-await-discard.md)
-- STBL0006–STBL0010: see [docs/rules/](./docs/rules/) (docs to be expanded as rules stabilize)
+- [STBL0006](./docs/rules/STBL0006-traditional-constructor.md)
+- STBL0007–STBL0010: see [docs/rules/](./docs/rules/) (docs to be expanded as rules stabilize)
 
 ## Severity philosophy
 

@@ -13,8 +13,6 @@ name: release
 #   Repository:    synaptix.packages
 #   Workflow file: release.yml
 #   Environment:   nuget-publish
-# No long-lived API key required; NuGet/login@v1 mints a short-lived
-# token via OIDC and exchanges it for a one-shot API key.
 #
 # Manual re-runs via workflow_dispatch: pass the tag via the
 # 'tag' input (e.g. v-analyzers-1.0.0). Use this after fixing
@@ -61,6 +59,10 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj', 'global.json') }}
           restore-keys: ${{ runner.os }}-nuget-
 
+      # Resolve the tag and emit package + version as step outputs.
+      # Done as a single command so the if/else chain produces one
+      # set of values; multiple parallel writes to $GITHUB_OUTPUT
+      # from a here-doc would interleave.
       - name: Resolve tag
         id: resolve
         env:
@@ -68,37 +70,36 @@ jobs:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           REF_NAME: ${{ github.ref_name }}
         run: |
-          set -euo pipefail
-          # Priority: manual input > release event > ref name
+          # Determine the tag string with priority: input > release > ref
           if [ -n "$MANUAL_TAG" ]; then
-            TAG="$MANUAL_TAG"
+            FULL_TAG="$MANUAL_TAG"
           elif [ -n "$RELEASE_TAG" ]; then
-            TAG="$RELEASE_TAG"
+            FULL_TAG="$RELEASE_TAG"
           else
-            TAG="$REF_NAME"
+            FULL_TAG="$REF_NAME"
           fi
-          echo "DEBUG_TAG=[$TAG]" >> "$GITHUB_OUTPUT"
-          # Strip leading 'v-' to get the bare tag name (e.g. v-text-1.1.0 -> text-1.1.0)
+          # Strip leading v-
+          TAG="${FULL_TAG#v-}"
+          PACKAGE=""
+          VERSION=""
           case "$TAG" in
-            v-*) BARE="${TAG#v-}" ;;
-            *)   BARE="$TAG" ;;
-          esac
-          echo "DEBUG_BARE=[$BARE]" >> "$GITHUB_OUTPUT"
-          echo "tag=$BARE" >> "$GITHUB_OUTPUT"
-          case "$BARE" in
             text-*)
-              echo "package=text" >> "$GITHUB_OUTPUT"
-              echo "version=${BARE#text-}" >> "$GITHUB_OUTPUT"
+              PACKAGE="text"
+              VERSION="${TAG#text-}"
               ;;
             analyzers-*)
-              echo "package=analyzers" >> "$GITHUB_OUTPUT"
-              echo "version=${BARE#analyzers-}" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "::error::Unknown tag '$TAG'. Expected v-text-<X.Y.Z> or v-analyzers-<X.Y.Z>."
-              exit 1
+              PACKAGE="analyzers"
+              VERSION="${TAG#analyzers-}"
               ;;
           esac
+          {
+            echo "package=${PACKAGE}"
+            echo "version=${VERSION}"
+          } >> "$GITHUB_OUTPUT"
+          if [ -z "$PACKAGE" ]; then
+            echo "::error::Unknown tag '${FULL_TAG}'. Expected v-text-<X.Y.Z> or v-analyzers-<X.Y.Z>."
+            exit 1
+          fi
           echo "Resolved: package=${{ steps.resolve.outputs.package }} version=${{ steps.resolve.outputs.version }}"
 
       - name: Restore
@@ -108,7 +109,6 @@ jobs:
         env:
           PACKAGE: ${{ steps.resolve.outputs.package }}
         run: |
-          set -euo pipefail
           # Capitalize first letter: text -> Text, analyzers -> Analyzers
           PROJECT="$(tr '[:lower:]' '[:upper:]' <<< "${PACKAGE:0:1}")${PACKAGE:1}"
           dotnet build "src/${PACKAGE}/Synaptix.${PROJECT}/Synaptix.${PROJECT}.csproj" -c Release --no-restore
@@ -118,7 +118,6 @@ jobs:
         env:
           PACKAGE: ${{ steps.resolve.outputs.package }}
         run: |
-          set -euo pipefail
           PROJECT="$(tr '[:lower:]' '[:upper:]' <<< "${PACKAGE:0:1}")${PACKAGE:1}"
           mkdir -p ./artifacts
           dotnet pack "src/${PACKAGE}/Synaptix.${PROJECT}/Synaptix.${PROJECT}.csproj" -c Release --no-build -o ./artifacts
@@ -127,7 +126,6 @@ jobs:
 
       - name: Verify exactly one .nupkg produced
         run: |
-          set -euo pipefail
           COUNT=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l | tr -d ' ')
           if [ "$COUNT" -ne 1 ]; then
             echo "::error::Expected 1 .nupkg in ./artifacts, got $COUNT"
@@ -147,7 +145,6 @@ jobs:
           PACKAGE: ${{ steps.resolve.outputs.package }}
           VERSION: ${{ steps.resolve.outputs.version }}
         run: |
-          set -euo pipefail
           echo "Publishing ${PACKAGE}@${VERSION} to NuGet.org..."
           dotnet nuget push ./artifacts/*.nupkg \
             --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \

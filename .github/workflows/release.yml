@@ -15,11 +15,20 @@ name: release
 #   Environment:   nuget-publish
 # No long-lived API key required; NuGet/login@v1 mints a short-lived
 # token via OIDC and exchanges it for a one-shot API key.
+#
+# Manual re-runs via workflow_dispatch: pass the tag via the
+# 'tag' input (e.g., v-analyzers-1.0.0). Use this after fixing
+# the workflow or after the Trusted Publishing policy activates.
 
 on:
   push:
     tags: ['v-*']
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g. v-analyzers-1.0.0). Required for manual re-runs; ignored for tag pushes.'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -52,34 +61,37 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj', 'global.json') }}
           restore-keys: ${{ runner.os }}-nuget-
 
-      # Use github.event.release.tag_name when triggered by a published
-      # release event, otherwise fall back to stripping refs/tags/ from
-      # GITHUB_REF. GITHUB_REF is unreliable on workflow_dispatch re-runs.
       - name: Parse tag -> package + version
         id: parse
         env:
-          TAG_NAME: ${{ github.event.release.tag_name }}
-          REF_NAME: ${{ github.ref_name }}
+          MANUAL_TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
-          if [ -n "$TAG_NAME" ]; then
-            TAG="$TAG_NAME"
+          # Priority: manual input > github.event.release.tag_name > GITHUB_REF_NAME
+          if [ -n "$MANUAL_TAG" ]; then
+            TAG="$MANUAL_TAG"
+          elif [ -n "${{ github.event.release.tag_name }}" ]; then
+            TAG="${{ github.event.release.tag_name }}"
           else
-            # Strip leading 'v-' from refs/tags/v-* to get the bare tag name
-            TAG="${REF_NAME#v-}"
+            TAG="${{ github.ref_name }}"
           fi
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          # Strip leading 'v-' to get the bare tag name (e.g. v-text-1.1.0 -> text-1.1.0)
           case "$TAG" in
+            v-*) BARE="${TAG#v-}" ;;
+            *)   BARE="$TAG" ;;
+          esac
+          echo "tag=$BARE" >> "$GITHUB_OUTPUT"
+          case "$BARE" in
             text-*)
               echo "package=text" >> "$GITHUB_OUTPUT"
-              echo "version=${TAG#text-}" >> "$GITHUB_OUTPUT"
+              echo "version=${BARE#text-}" >> "$GITHUB_OUTPUT"
               ;;
             analyzers-*)
               echo "package=analyzers" >> "$GITHUB_OUTPUT"
-              echo "version=${TAG#analyzers-}" >> "$GITHUB_OUTPUT"
+              echo "version=${BARE#analyzers-}" >> "$GITHUB_OUTPUT"
               ;;
             *)
-              echo "::error::Unknown tag prefix in '$TAG'. Expected v-text-* or v-analyzers-*."
+              echo "::error::Unknown tag '$TAG'. Expected v-text-<X.Y.Z> or v-analyzers-<X.Y.Z>."
               exit 1
               ;;
           esac
@@ -96,7 +108,7 @@ jobs:
           # Capitalize first letter: text -> Text, analyzers -> Analyzers
           PROJECT="$(tr '[:lower:]' '[:upper:]' <<< "${PACKAGE:0:1}")${PACKAGE:1}"
           dotnet build "src/${PACKAGE}/Synaptix.${PROJECT}/Synaptix.${PROJECT}.csproj" -c Release --no-restore
-          dotnet test  "src/${PACKAGE}/Synaptix.${PROJECT}.Tests/Synaptix.${PROJECT}.Tests.csproj" --no-build --nologo
+          dotnet test  "src/${PACKAGE}/Synaptix.${PROJECT}.Tests/Synaptix.${PROJECT}.Tests.csproj" -c Release --no-build --nologo
 
       - name: Pack matching project
         env:

@@ -52,44 +52,73 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj', 'global.json') }}
           restore-keys: ${{ runner.os }}-nuget-
 
+      # Use github.event.release.tag_name when triggered by a published
+      # release event, otherwise fall back to stripping refs/tags/ from
+      # GITHUB_REF. GITHUB_REF is unreliable on workflow_dispatch re-runs.
       - name: Parse tag -> package + version
         id: parse
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          if [[ "$TAG" == v-text-* ]]; then
-            echo "package=text"           >> "$GITHUB_OUTPUT"
-            echo "version=${TAG#v-text-}"  >> "$GITHUB_OUTPUT"
-          elif [[ "$TAG" == v-analyzers-* ]]; then
-            echo "package=analyzers"           >> "$GITHUB_OUTPUT"
-            echo "version=${TAG#v-analyzers-}"  >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          if [ -n "$TAG_NAME" ]; then
+            TAG="$TAG_NAME"
           else
-            echo "::error::Unknown tag prefix in '$TAG'. Expected v-text-* or v-analyzers-*."
-            exit 1
+            # Strip leading 'v-' from refs/tags/v-* to get the bare tag name
+            TAG="${REF_NAME#v-}"
           fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          case "$TAG" in
+            text-*)
+              echo "package=text" >> "$GITHUB_OUTPUT"
+              echo "version=${TAG#text-}" >> "$GITHUB_OUTPUT"
+              ;;
+            analyzers-*)
+              echo "package=analyzers" >> "$GITHUB_OUTPUT"
+              echo "version=${TAG#analyzers-}" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::Unknown tag prefix in '$TAG'. Expected v-text-* or v-analyzers-*."
+              exit 1
+              ;;
+          esac
+          echo "Resolved: package=${{ steps.parse.outputs.package }} version=${{ steps.parse.outputs.version }}"
 
       - name: Restore
         run: dotnet restore synaptix.packages.slnx
 
       - name: Build + test only the matching package
+        env:
+          PACKAGE: ${{ steps.parse.outputs.package }}
         run: |
-          PACKAGE="${{ steps.parse.outputs.package }}"
-          dotnet build "src/${PACKAGE}/Synaptix.${PACKAGE^}/Synaptix.${PACKAGE^}.csproj" -c Release --no-restore
-          dotnet test  "src/${PACKAGE}/Synaptix.${PACKAGE^}.Tests/Synaptix.${PACKAGE^}.Tests.csproj" --no-build --nologo
+          set -euo pipefail
+          # Capitalize first letter: text -> Text, analyzers -> Analyzers
+          PROJECT="$(tr '[:lower:]' '[:upper:]' <<< "${PACKAGE:0:1}")${PACKAGE:1}"
+          dotnet build "src/${PACKAGE}/Synaptix.${PROJECT}/Synaptix.${PROJECT}.csproj" -c Release --no-restore
+          dotnet test  "src/${PACKAGE}/Synaptix.${PROJECT}.Tests/Synaptix.${PROJECT}.Tests.csproj" --no-build --nologo
 
       - name: Pack matching project
+        env:
+          PACKAGE: ${{ steps.parse.outputs.package }}
         run: |
-          PACKAGE="${{ steps.parse.outputs.package }}"
-          dotnet pack "src/${PACKAGE}/Synaptix.${PACKAGE^}/Synaptix.${PACKAGE^}.csproj" -c Release --no-build -o ./artifacts
+          set -euo pipefail
+          PROJECT="$(tr '[:lower:]' '[:upper:]' <<< "${PACKAGE:0:1}")${PACKAGE:1}"
+          mkdir -p ./artifacts
+          dotnet pack "src/${PACKAGE}/Synaptix.${PROJECT}/Synaptix.${PROJECT}.csproj" -c Release --no-build -o ./artifacts
+          echo "Artifacts after pack:"
+          ls -la ./artifacts/
 
       - name: Verify exactly one .nupkg produced
         run: |
-          COUNT=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l)
+          set -euo pipefail
+          COUNT=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l | tr -d ' ')
           if [ "$COUNT" -ne 1 ]; then
             echo "::error::Expected 1 .nupkg in ./artifacts, got $COUNT"
-            ls -la ./artifacts/
+            ls -la ./artifacts/ || true
             exit 1
           fi
+          echo "Found 1 .nupkg: $(ls ./artifacts/*.nupkg)"
 
       - name: NuGet login (OIDC -> short-lived API key)
         uses: NuGet/login@v1
@@ -98,10 +127,14 @@ jobs:
           user: lowern1ght
 
       - name: Push to NuGet.org
+        env:
+          PACKAGE: ${{ steps.parse.outputs.package }}
+          VERSION: ${{ steps.parse.outputs.version }}
         run: |
-          echo "Publishing ${{ steps.parse.outputs.package }}@${{ steps.parse.outputs.version }} to NuGet.org..."
+          set -euo pipefail
+          echo "Publishing ${PACKAGE}@${VERSION} to NuGet.org..."
           dotnet nuget push ./artifacts/*.nupkg \
-            --api-key ${{ steps.login.outputs.NUGET_API_KEY }} \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 

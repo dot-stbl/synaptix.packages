@@ -24,6 +24,7 @@ dotnet_diagnostic.SYNAPTIX0007.severity = warning
 dotnet_diagnostic.SYNAPTIX0008.severity = warning
 dotnet_diagnostic.SYNAPTIX0009.severity = warning
 dotnet_diagnostic.SYNAPTIX0010.severity = warning
+dotnet_diagnostic.SYNAPTIX0011.severity = warning
 ```
 
 (IDs are `STBL0001`...`STBL0010`; the analyzer emits them under the `SYNAPTIX` prefix as `SYNAPTIX0001` etc.)
@@ -42,6 +43,7 @@ dotnet_diagnostic.SYNAPTIX0010.severity = warning
 | `STBL0008` | Concrete class is not sealed | Warning | Yes (add `sealed`) | Per `naming-and-types.md §2` — sealed REQUIRED on concrete classes. (Architectural: `sealed` is a structural decision.) |
 | `STBL0009` | Collection initializer can be a collection expression (C# 12+) | Warning | Yes (convert) | Per `code-shape.md` — modern C# style. |
 | `STBL0010` | `#region` directive is banned | Warning | — (no fix) | Per `code-shape.md §10` — use member organization instead. |
+| `STBL0011` | `catch (Exception)` outside top-level handler | Warning | — (no fix) | Per `exceptions.md §2` — catch the specific exception type you can act on; reserve catch-alls for top-level handlers. |
 
 Each rule maps to a specific rule file in this repo:
 - [STBL0001](./docs/rules/STBL0001-no-banned-suffixes.md)

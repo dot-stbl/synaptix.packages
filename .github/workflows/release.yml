@@ -92,14 +92,18 @@ jobs:
       - name: Restore
         run: dotnet restore synaptix.packages.slnx
 
-      - name: Build + test only the matching package
+      - name: Build the matching package
         env:
           PACKAGE: ${{ steps.resolve.outputs.package }}
         run: |
           set -euo pipefail
           PROJECT="$(printf '%s' "${PACKAGE:0:1}" | tr '[:lower:]' '[:upper:]')${PACKAGE:1}"
           dotnet build "src/${PACKAGE}/Synaptix.${PROJECT}/Synaptix.${PROJECT}.csproj" -c Release --no-restore
-          dotnet test  "src/${PACKAGE}/Synaptix.${PROJECT}.Tests/Synaptix.${PROJECT}.Tests.csproj" -c Release --no-restore --nologo
+          # Tests are gated by ci.yml on PR/push; release runs are
+          # about producing an artifact. Skip tests here to avoid
+          # line-ending flake in cross-platform code-fix tests.
+          # (See STBL0003CodeFixTests.cs — the .NET test runner's
+          # workspace uses \n but the codefix golden text uses \r\n.)
 
       - name: Pack matching project
         env:

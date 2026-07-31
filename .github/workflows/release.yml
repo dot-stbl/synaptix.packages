@@ -97,8 +97,16 @@ jobs:
           PACKAGE: ${{ steps.resolve.outputs.package }}
         run: |
           set -euo pipefail
-          PROJECT="$(printf '%s' "${PACKAGE:0:1}" | tr '[:lower:]' '[:upper:]')${PACKAGE:1}"
-          dotnet build "src/${PACKAGE}/Synaptix.${PROJECT}/Synaptix.${PROJECT}.csproj" -c Release --no-restore
+          # Project name doesn't always equal the package name
+          # (e.g. package 'text' -> 'Synaptix.Text.Case'). Find the
+          # .csproj under src/$PACKAGE that is NOT a Tests project.
+          CSPROJ=$(find "src/${PACKAGE}" -maxdepth 2 -name 'Synaptix.*.csproj' ! -name '*.Tests.csproj' | head -1)
+          if [ -z "$CSPROJ" ]; then
+            echo "::error::No production csproj found in src/${PACKAGE}/"
+            exit 1
+          fi
+          echo "Building $CSPROJ"
+          dotnet build "$CSPROJ" -c Release --no-restore
           # Tests are gated by ci.yml on PR/push; release runs are
           # about producing an artifact. Skip tests here to avoid
           # line-ending flake in cross-platform code-fix tests.
@@ -110,9 +118,14 @@ jobs:
           PACKAGE: ${{ steps.resolve.outputs.package }}
         run: |
           set -euo pipefail
-          PROJECT="$(printf '%s' "${PACKAGE:0:1}" | tr '[:lower:]' '[:upper:]')${PACKAGE:1}"
+          CSPROJ=$(find "src/${PACKAGE}" -maxdepth 2 -name 'Synaptix.*.csproj' ! -name '*.Tests.csproj' | head -1)
+          if [ -z "$CSPROJ" ]; then
+            echo "::error::No production csproj found in src/${PACKAGE}/"
+            exit 1
+          fi
           mkdir -p ./artifacts
-          dotnet pack "src/${PACKAGE}/Synaptix.${PROJECT}/Synaptix.${PROJECT}.csproj" -c Release --no-build -o ./artifacts
+          echo "Packing $CSPROJ"
+          dotnet pack "$CSPROJ" -c Release --no-build -o ./artifacts
           echo "Artifacts after pack:"
           ls -la ./artifacts/
 

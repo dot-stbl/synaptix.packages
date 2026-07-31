@@ -17,7 +17,7 @@ name: release
 # token via OIDC and exchanges it for a one-shot API key.
 #
 # Manual re-runs via workflow_dispatch: pass the tag via the
-# 'tag' input (e.g., v-analyzers-1.0.0). Use this after fixing
+# 'tag' input (e.g. v-analyzers-1.0.0). Use this after fixing
 # the workflow or after the Trusted Publishing policy activates.
 
 on:
@@ -61,33 +61,29 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj', 'global.json') }}
           restore-keys: ${{ runner.os }}-nuget-
 
-
-      - name: Debug tag parsing
+      - name: Resolve tag
+        id: resolve
         env:
           MANUAL_TAG: ${{ inputs.tag }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
           REF_NAME: ${{ github.ref_name }}
         run: |
-          echo "DEBUG MANUAL_TAG=''"
-          echo "DEBUG REF_NAME=''"
-      - name: Parse tag -> package + version
-        id: parse
-        env:
-          MANUAL_TAG: ${{ inputs.tag }}
-        run: |
           set -euo pipefail
-          # Priority: manual input > github.event.release.tag_name > GITHUB_REF_NAME
+          # Priority: manual input > release event > ref name
           if [ -n "$MANUAL_TAG" ]; then
             TAG="$MANUAL_TAG"
-          elif [ -n "${{ github.event.release.tag_name }}" ]; then
-            TAG="${{ github.event.release.tag_name }}"
+          elif [ -n "$RELEASE_TAG" ]; then
+            TAG="$RELEASE_TAG"
           else
-            TAG="${{ github.ref_name }}"
+            TAG="$REF_NAME"
           fi
+          echo "DEBUG_TAG=[$TAG]" >> "$GITHUB_OUTPUT"
           # Strip leading 'v-' to get the bare tag name (e.g. v-text-1.1.0 -> text-1.1.0)
           case "$TAG" in
             v-*) BARE="${TAG#v-}" ;;
             *)   BARE="$TAG" ;;
           esac
+          echo "DEBUG_BARE=[$BARE]" >> "$GITHUB_OUTPUT"
           echo "tag=$BARE" >> "$GITHUB_OUTPUT"
           case "$BARE" in
             text-*)
@@ -103,14 +99,14 @@ jobs:
               exit 1
               ;;
           esac
-          echo "Resolved: package=${{ steps.parse.outputs.package }} version=${{ steps.parse.outputs.version }}"
+          echo "Resolved: package=${{ steps.resolve.outputs.package }} version=${{ steps.resolve.outputs.version }}"
 
       - name: Restore
         run: dotnet restore synaptix.packages.slnx
 
       - name: Build + test only the matching package
         env:
-          PACKAGE: ${{ steps.parse.outputs.package }}
+          PACKAGE: ${{ steps.resolve.outputs.package }}
         run: |
           set -euo pipefail
           # Capitalize first letter: text -> Text, analyzers -> Analyzers
@@ -120,7 +116,7 @@ jobs:
 
       - name: Pack matching project
         env:
-          PACKAGE: ${{ steps.parse.outputs.package }}
+          PACKAGE: ${{ steps.resolve.outputs.package }}
         run: |
           set -euo pipefail
           PROJECT="$(tr '[:lower:]' '[:upper:]' <<< "${PACKAGE:0:1}")${PACKAGE:1}"
@@ -148,8 +144,8 @@ jobs:
 
       - name: Push to NuGet.org
         env:
-          PACKAGE: ${{ steps.parse.outputs.package }}
-          VERSION: ${{ steps.parse.outputs.version }}
+          PACKAGE: ${{ steps.resolve.outputs.package }}
+          VERSION: ${{ steps.resolve.outputs.version }}
         run: |
           set -euo pipefail
           echo "Publishing ${PACKAGE}@${VERSION} to NuGet.org..."

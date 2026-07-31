@@ -119,13 +119,15 @@ jobs:
       - name: Verify exactly one .nupkg produced
         run: |
           set -euo pipefail
-          COUNT=$(ls ./artifacts/*.nupkg 2>/dev/null | wc -l | tr -d ' ')
+          # find is more robust than a glob here: no-op exit code on empty
+          # matches, easier to count.
+          COUNT=$(find ./artifacts -maxdepth 1 -name '*.nupkg' | wc -l | tr -d ' ')
           if [ "$COUNT" -ne 1 ]; then
             echo "::error::Expected 1 .nupkg in ./artifacts, got $COUNT"
             ls -la ./artifacts/ || true
             exit 1
           fi
-          echo "Found 1 .nupkg: $(ls ./artifacts/*.nupkg)"
+          echo "Found 1 .nupkg: $(find ./artifacts -maxdepth 1 -name '*.nupkg')"
 
       - name: NuGet login (OIDC -> short-lived API key)
         uses: NuGet/login@v1
